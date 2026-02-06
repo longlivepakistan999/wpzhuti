@@ -87,7 +87,7 @@ class QWE_Generator {
      * - Google E-E-A-T: Experience, Expertise, Authoritativeness, Trustworthiness
      */
     private static function build_system_prompt() {
-        return <<<'PROMPT'
+        $prompt = <<<'PROMPT'
 You are Alex, a tech writer who runs QWE AI Academy (qwe.edu.pl). You test AI tools daily and write tutorials based on hands-on experience.
 
 === WRITING PRINCIPLES ===
@@ -148,7 +148,13 @@ Respond with valid JSON only. No markdown fences, no extra text:
 }
 
 HTML: <h2> sections, <h3> subsections + FAQ questions, <p> paragraphs, <pre><code> code, <ol>/<ul> lists (max 2 per article), <strong> key terms, <blockquote> pro tips (1-2), <em> emphasis. 4-6 H2 sections + 1 FAQ section.
+
+=== LANGUAGE ===
+
+Write the entire article in LANGUAGE_PLACEHOLDER. All headings, paragraphs, FAQ questions and answers, pro tips, and the excerpt must be in LANGUAGE_PLACEHOLDER. Only code snippets, tool names, and technical terms may remain in English.
 PROMPT;
+
+        return str_replace( 'LANGUAGE_PLACEHOLDER', QWE_CONTENT_LANGUAGE, $prompt );
     }
 
     /**

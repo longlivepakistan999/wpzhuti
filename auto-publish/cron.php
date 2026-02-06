@@ -26,7 +26,7 @@ require_once __DIR__ . '/publisher.php';
 $is_cli = ( 'cli' === php_sapi_name() );
 
 if ( ! $is_cli ) {
-    if ( ! isset( $_GET['key'] ) || $_GET['key'] !== QWE_CRON_SECRET ) {
+    if ( ! isset( $_GET['key'] ) || ! hash_equals( QWE_CRON_SECRET, $_GET['key'] ) ) {
         http_response_code( 403 );
         die( 'Forbidden' );
     }

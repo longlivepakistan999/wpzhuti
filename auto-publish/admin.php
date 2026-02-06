@@ -17,7 +17,7 @@
 require_once __DIR__ . '/config.php';
 
 // Auth check.
-if ( ! isset( $_GET['key'] ) || $_GET['key'] !== QWE_CRON_SECRET ) {
+if ( ! isset( $_GET['key'] ) || ! hash_equals( QWE_CRON_SECRET, $_GET['key'] ) ) {
     http_response_code( 403 );
     die( 'Forbidden. Append ?key=YOUR_SECRET to the URL.' );
 }
@@ -651,7 +651,7 @@ if ( 'log' === $view && file_exists( $log_file ) ) {
                     <td><?php echo $kw['post_id'] ? (int) $kw['post_id'] : '-'; ?></td>
                     <td>
                         <?php if ( 'pending' === $kw['status'] ) : ?>
-                        <a href="<?php echo $base_url; ?>&action=delete-keyword&kw_id=<?php echo $kw['id']; ?>&view=keywords&kw_status=<?php echo $kw_filter_status; ?>&kw_cat=<?php echo $kw_filter_cat; ?>&kw_page=<?php echo $kw_page; ?>" class="btn btn-danger btn-xs" onclick="return confirm('Delete this keyword?')">Delete</a>
+                        <a href="<?php echo $base_url; ?>&action=delete-keyword&kw_id=<?php echo (int) $kw['id']; ?>&view=keywords&kw_status=<?php echo $kw_filter_status; ?>&kw_cat=<?php echo $kw_filter_cat; ?>&kw_page=<?php echo $kw_page; ?>" class="btn btn-danger btn-xs" onclick="return confirm('Delete this keyword?')">Delete</a>
                         <?php else : ?>
                         <span class="info-text">-</span>
                         <?php endif; ?>
@@ -699,7 +699,7 @@ if ( 'log' === $view && file_exists( $log_file ) ) {
                     <td><?php echo htmlspecialchars( $t['category'] ); ?></td>
                     <td><?php echo htmlspecialchars( $t['fetched_at'] ); ?></td>
                     <td>
-                        <a href="<?php echo $base_url; ?>&action=delete-trending&tr_id=<?php echo $t['id']; ?>&view=trending&tr_page=<?php echo $tr_page; ?>" class="btn btn-danger btn-xs" onclick="return confirm('Delete this trending topic?')">Delete</a>
+                        <a href="<?php echo $base_url; ?>&action=delete-trending&tr_id=<?php echo (int) $t['id']; ?>&view=trending&tr_page=<?php echo $tr_page; ?>" class="btn btn-danger btn-xs" onclick="return confirm('Delete this trending topic?')">Delete</a>
                     </td>
                 </tr>
                 <?php endforeach; ?>
