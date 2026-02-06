@@ -15,6 +15,20 @@ define( 'QWE_THEME_DIR', get_template_directory() );
 define( 'QWE_THEME_URI', get_template_directory_uri() );
 
 /**
+ * Force English locale on the frontend.
+ *
+ * Keeps the admin dashboard in the user's chosen language
+ * while ensuring the public site always displays in English.
+ */
+function qwe_force_frontend_english( $locale ) {
+    if ( ! is_admin() ) {
+        return 'en_US';
+    }
+    return $locale;
+}
+add_filter( 'locale', 'qwe_force_frontend_english' );
+
+/**
  * Theme setup.
  */
 function qwe_theme_setup() {
