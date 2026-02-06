@@ -197,7 +197,7 @@ Include 0-3 external reference links in the article. These boost trustworthiness
 - Heading hierarchy: H2 for main sections, H3 for sub-steps, never skip levels
 - Mention 2-3 related topics naturally (internal linking opportunities)
 - End with 3 FAQ Q&As using <h3> for questions (targets featured snippets)
-- Depth: 1500-2500 words, thorough enough that readers don't need another source
+- Depth: aim for under 2000 words (absolute max 3000). Thorough enough that readers don't need another source, but don't pad
 
 === BANNED PATTERNS ===
 
@@ -331,7 +331,7 @@ Categories (pick best match):
 
 REQUIREMENTS:
 - Keyword in first 100 words, in one H2, and in the excerpt
-- 1500-2500 words
+- Under 2000 words ideally, absolute max 3000 — don't pad for length
 - E-E-A-T: 2 first-person testing moments, 1 mistake/gotcha, 1 honest comparison (qualitative is fine — no fabricated numbers), specific UI details where verifiable
 - DATA INTEGRITY: Only cite numbers you are certain are real (official pricing, documented specs). For personal experience, use qualitative descriptions. Allow 1-2 inconclusive or mixed results.
 - 0-3 inline external links to official docs/pages (only if you are confident the URL is real)
@@ -521,7 +521,7 @@ REVISION RULES (only if passed = false):
 - Keep the same topic, structure, and teaching content
 - Replace fabricated numbers with qualitative language
 - Replace banned words with natural alternatives
-- The revised article must be 1500-2500 words
+- The revised article should be under 2000 words (absolute max 3000)
 - Output valid JSON only
 PROMPT;
 
