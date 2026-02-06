@@ -264,32 +264,5 @@ get_header();
     </div>
 </section>
 
-<!-- 8. FRIEND LINKS -->
-<?php
-$friend_links = get_posts( array(
-    'post_type'      => 'friend_link',
-    'posts_per_page' => -1,
-    'post_status'    => 'publish',
-    'meta_key'       => '_qwe_friend_order',
-    'orderby'        => 'meta_value_num',
-    'order'          => 'ASC',
-) );
-
-if ( ! empty( $friend_links ) ) : ?>
-<section class="section friend-links">
-    <div class="container">
-        <h3 class="friend-links__title"><?php esc_html_e( 'Friend Links', 'qwe-developer-flavor' ); ?></h3>
-        <ul class="friend-links__list">
-            <?php foreach ( $friend_links as $link ) :
-                $url = get_post_meta( $link->ID, '_qwe_friend_url', true );
-                if ( $url ) : ?>
-                    <li><a href="<?php echo esc_url( $url ); ?>" target="_blank" rel="nofollow noopener"><?php echo esc_html( $link->post_title ); ?></a></li>
-                <?php endif;
-            endforeach; ?>
-        </ul>
-    </div>
-</section>
-<?php endif; ?>
-
 <?php
 get_footer();
