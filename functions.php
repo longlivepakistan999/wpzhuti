@@ -46,8 +46,8 @@ function qwe_theme_setup() {
     add_image_size( 'qwe-tutorial-hero', 1200, 500, true );
 
     register_nav_menus( array(
-        'primary'   => esc_html__( 'Primary Menu', 'qwe-developer-flavor' ),
-        'footer'    => esc_html__( 'Footer Menu', 'qwe-developer-flavor' ),
+        'primary' => esc_html__( 'Primary Menu', 'qwe-developer-flavor' ),
+        'footer'  => esc_html__( 'Footer Menu', 'qwe-developer-flavor' ),
     ) );
 }
 add_action( 'after_setup_theme', 'qwe_theme_setup' );
@@ -56,7 +56,6 @@ add_action( 'after_setup_theme', 'qwe_theme_setup' );
  * Enqueue scripts and styles.
  */
 function qwe_enqueue_assets() {
-    // Google Fonts
     wp_enqueue_style(
         'qwe-google-fonts',
         'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap',
@@ -64,7 +63,6 @@ function qwe_enqueue_assets() {
         null
     );
 
-    // Main stylesheet
     wp_enqueue_style(
         'qwe-style',
         get_stylesheet_uri(),
@@ -72,7 +70,6 @@ function qwe_enqueue_assets() {
         QWE_THEME_VERSION
     );
 
-    // Theme JavaScript
     wp_enqueue_script(
         'qwe-main',
         QWE_THEME_URI . '/assets/js/main.js',
@@ -96,7 +93,7 @@ function qwe_widgets_init() {
     register_sidebar( array(
         'name'          => esc_html__( 'Sidebar', 'qwe-developer-flavor' ),
         'id'            => 'sidebar-1',
-        'description'   => esc_html__( 'Add widgets here for the blog sidebar.', 'qwe-developer-flavor' ),
+        'description'   => esc_html__( 'Add widgets here for the tutorial sidebar.', 'qwe-developer-flavor' ),
         'before_widget' => '<div id="%1$s" class="widget %2$s">',
         'after_widget'  => '</div>',
         'before_title'  => '<h3 class="widget-title">',
@@ -122,6 +119,7 @@ require_once QWE_THEME_DIR . '/inc/custom-post-types.php';
 require_once QWE_THEME_DIR . '/inc/customizer.php';
 require_once QWE_THEME_DIR . '/inc/template-tags.php';
 require_once QWE_THEME_DIR . '/inc/theme-hooks.php';
+require_once QWE_THEME_DIR . '/inc/seo.php';
 
 /**
  * Custom excerpt length.
