@@ -53,6 +53,15 @@ class QWE_Generator {
         $article['keyword'] = $keyword;
         $article['keyword_type'] = $keyword_type;
 
+        // Post-process: strip AI fingerprints from all text fields.
+        $article['title']   = self::clean_ai_fingerprint( $article['title'] );
+        $article['excerpt'] = self::clean_ai_fingerprint( $article['excerpt'] );
+        $article['content'] = self::clean_ai_fingerprint( $article['content'] );
+        $article['slug']    = self::clean_ai_fingerprint( $article['slug'] );
+        if ( ! empty( $article['tags'] ) ) {
+            $article['tags'] = array_map( array( __CLASS__, 'clean_ai_fingerprint' ), $article['tags'] );
+        }
+
         // Validate category is one of ours.
         if ( ! isset( $categories[ $article['category'] ] ) ) {
             // Default to first matching category or chatgpt-llms.
@@ -332,6 +341,209 @@ PROMPT;
 
         return $article;
     }
+
+    // ==========================================================
+    // Post-Processing: Strip AI Fingerprints
+    // ==========================================================
+
+    /**
+     * Remove AI-generated invisible characters, normalize typography,
+     * and clean statistical fingerprints from text.
+     *
+     * AI models (ChatGPT, Claude, etc.) embed invisible Unicode characters
+     * in their output. Detectors like GPTZero, Originality.AI use these
+     * as signals. This method strips them all.
+     *
+     * @param string $text Raw AI-generated text.
+     * @return string Cleaned text.
+     */
+    public static function clean_ai_fingerprint( $text ) {
+        if ( empty( $text ) ) {
+            return $text;
+        }
+
+        // Step 1: Remove invisible Unicode characters (AI watermarks).
+        $text = self::strip_invisible_unicode( $text );
+
+        // Step 2: Normalize typography (smart quotes, dashes, spaces).
+        $text = self::normalize_typography( $text );
+
+        // Step 3: Normalize homoglyphs (Cyrillic/Greek lookalikes → Latin).
+        $text = self::normalize_homoglyphs( $text );
+
+        // Step 4: Clean whitespace patterns.
+        $text = self::clean_whitespace( $text );
+
+        return $text;
+    }
+
+    /**
+     * Strip all invisible Unicode characters that AI models inject.
+     * These are the primary "digital fingerprints" detectors look for.
+     */
+    private static function strip_invisible_unicode( $text ) {
+        // Zero-width characters (most common AI artifacts).
+        $text = preg_replace( '/[\x{200B}\x{200C}\x{200D}\x{200E}\x{200F}]/u', '', $text );
+
+        // Byte Order Marks.
+        $text = preg_replace( '/[\x{FEFF}\x{FFFE}]/u', '', $text );
+
+        // Word joiners and invisible separators.
+        $text = preg_replace( '/[\x{2060}\x{2061}\x{2062}\x{2063}\x{2064}]/u', '', $text );
+
+        // Soft hyphen.
+        $text = preg_replace( '/\x{00AD}/u', '', $text );
+
+        // Bidirectional formatting characters.
+        $text = preg_replace( '/[\x{202A}-\x{202E}]/u', '', $text );
+
+        // Bidirectional isolate characters (Unicode 6.3+).
+        $text = preg_replace( '/[\x{2066}-\x{2069}]/u', '', $text );
+
+        // Interlinear annotation anchors.
+        $text = preg_replace( '/[\x{FFF9}-\x{FFFB}]/u', '', $text );
+
+        // Variation selectors (VS1-VS16) — used for glyph variants.
+        $text = preg_replace( '/[\x{FE00}-\x{FE0F}]/u', '', $text );
+
+        // Tag characters (U+E0001-U+E007F) — sometimes used for invisible tagging.
+        $text = preg_replace( '/[\x{E0001}-\x{E007F}]/u', '', $text );
+
+        // Object replacement and replacement characters.
+        $text = preg_replace( '/[\x{FFFC}\x{FFFD}]/u', '', $text );
+
+        return $text;
+    }
+
+    /**
+     * Normalize AI typography patterns.
+     *
+     * AI models use Unicode fancy characters where humans type ASCII.
+     * Normalizing these removes statistical patterns detectors measure.
+     */
+    private static function normalize_typography( $text ) {
+        // Smart quotes → straight quotes (AI loves smart quotes, humans often don't).
+        $text = str_replace(
+            array( "\xE2\x80\x9C", "\xE2\x80\x9D", "\xE2\x80\x98", "\xE2\x80\x99" ),
+            array( '"', '"', "'", "'" ),
+            $text
+        );
+
+        // Em dash (U+2014) → spaced hyphen (more common in human casual writing).
+        $text = str_replace( "\xE2\x80\x94", ' - ', $text );
+
+        // En dash (U+2013) → hyphen.
+        $text = str_replace( "\xE2\x80\x93", '-', $text );
+
+        // Horizontal ellipsis (U+2026) → three dots.
+        $text = str_replace( "\xE2\x80\xA6", '...', $text );
+
+        // Non-breaking space (U+00A0) → regular space.
+        $text = str_replace( "\xC2\xA0", ' ', $text );
+
+        // Figure space (U+2007), punctuation space (U+2008), thin space (U+2009),
+        // hair space (U+200A), narrow no-break space (U+202F), medium math space (U+205F).
+        $text = preg_replace( '/[\x{2000}-\x{200A}\x{202F}\x{205F}\x{3000}]/u', ' ', $text );
+
+        // Minus sign (U+2212) → hyphen-minus.
+        $text = str_replace( "\xE2\x88\x92", '-', $text );
+
+        // Bullet (U+2022) — keep in HTML lists, but normalize outside.
+        // Prime marks → quotes.
+        $text = str_replace( "\xE2\x80\xB2", "'", $text ); // Prime.
+        $text = str_replace( "\xE2\x80\xB3", '"', $text );  // Double prime.
+
+        return $text;
+    }
+
+    /**
+     * Normalize homoglyph characters.
+     *
+     * AI sometimes uses Cyrillic, Greek, or mathematical characters
+     * that look identical to Latin letters but have different code points.
+     * Detectors flag these as manipulation signals.
+     */
+    private static function normalize_homoglyphs( $text ) {
+        // Cyrillic → Latin (most common homoglyphs).
+        $cyrillic_map = array(
+            "\xD0\x90" => 'A',  // А → A
+            "\xD0\x92" => 'B',  // В → B
+            "\xD0\xA1" => 'C',  // С → C
+            "\xD0\x95" => 'E',  // Е → E
+            "\xD0\x9D" => 'H',  // Н → H
+            "\xD0\x9A" => 'K',  // К → K
+            "\xD0\x9C" => 'M',  // М → M
+            "\xD0\x9E" => 'O',  // О → O
+            "\xD0\xA0" => 'P',  // Р → P
+            "\xD0\xA2" => 'T',  // Т → T
+            "\xD0\xA5" => 'X',  // Х → X
+            "\xD0\xB0" => 'a',  // а → a
+            "\xD1\x81" => 'c',  // с → c
+            "\xD0\xB5" => 'e',  // е → e
+            "\xD0\xBE" => 'o',  // о → o
+            "\xD1\x80" => 'p',  // р → p
+            "\xD1\x85" => 'x',  // х → x
+            "\xD1\x83" => 'y',  // у → y
+        );
+
+        $text = str_replace( array_keys( $cyrillic_map ), array_values( $cyrillic_map ), $text );
+
+        // Greek → Latin (common ones).
+        $greek_map = array(
+            "\xCE\x91" => 'A',  // Α → A
+            "\xCE\x92" => 'B',  // Β → B
+            "\xCE\x95" => 'E',  // Ε → E
+            "\xCE\x96" => 'Z',  // Ζ → Z
+            "\xCE\x97" => 'H',  // Η → H
+            "\xCE\x99" => 'I',  // Ι → I
+            "\xCE\x9A" => 'K',  // Κ → K
+            "\xCE\x9C" => 'M',  // Μ → M
+            "\xCE\x9D" => 'N',  // Ν → N
+            "\xCE\x9F" => 'O',  // Ο → O
+            "\xCE\xA1" => 'P',  // Ρ → P
+            "\xCE\xA4" => 'T',  // Τ → T
+            "\xCE\xA5" => 'Y',  // Υ → Y
+            "\xCE\xA7" => 'X',  // Χ → X
+            "\xCE\xBF" => 'o',  // ο → o
+        );
+
+        $text = str_replace( array_keys( $greek_map ), array_values( $greek_map ), $text );
+
+        // Fullwidth Latin → normal Latin (U+FF01-U+FF5E → U+0021-U+007E).
+        $text = preg_replace_callback( '/[\x{FF01}-\x{FF5E}]/u', function( $m ) {
+            $cp = mb_ord( $m[0], 'UTF-8' );
+            return chr( $cp - 0xFF01 + 0x21 );
+        }, $text );
+
+        return $text;
+    }
+
+    /**
+     * Clean whitespace patterns that AI models produce.
+     *
+     * AI text has unnaturally consistent spacing. This normalizes it.
+     */
+    private static function clean_whitespace( $text ) {
+        // Multiple spaces → single space (but preserve HTML tags).
+        $text = preg_replace( '/(?<=>)\s+(?=<)/', '', $text ); // Between HTML tags.
+        $text = preg_replace( '/ {2,}/', ' ', $text );          // Multiple spaces in text.
+
+        // Remove trailing spaces on lines.
+        $text = preg_replace( '/[ \t]+$/m', '', $text );
+
+        // Normalize line endings.
+        $text = str_replace( "\r\n", "\n", $text );
+        $text = str_replace( "\r", "\n", $text );
+
+        // Remove excessive blank lines (3+ → 2).
+        $text = preg_replace( '/\n{3,}/', "\n\n", $text );
+
+        return trim( $text );
+    }
+
+    // ==========================================================
+    // Logger
+    // ==========================================================
 
     /**
      * Simple log.
