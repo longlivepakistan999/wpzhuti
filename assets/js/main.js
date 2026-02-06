@@ -27,6 +27,18 @@
                 toggle.setAttribute('aria-expanded', 'false');
             }
         });
+
+        // Mobile sub-menu toggle for items with children.
+        var parentItems = nav.querySelectorAll('.menu-item-has-children > a');
+        parentItems.forEach(function (link) {
+            link.addEventListener('click', function (e) {
+                if (window.innerWidth <= 960) {
+                    e.preventDefault();
+                    var li = link.parentElement;
+                    li.classList.toggle('is-open');
+                }
+            });
+        });
     }
 
     /**
