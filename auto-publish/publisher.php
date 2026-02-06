@@ -27,10 +27,13 @@ class QWE_Publisher {
             return false;
         }
 
+        // Sanitize slug first so duplicate check matches what WP actually stores.
+        $slug = sanitize_title( $article['slug'] );
+
         // Check for duplicate slug.
-        $existing = get_page_by_path( $article['slug'], OBJECT, 'tutorial' );
+        $existing = get_page_by_path( $slug, OBJECT, 'tutorial' );
         if ( $existing ) {
-            self::log( "Duplicate slug: {$article['slug']}, skipping" );
+            self::log( "Duplicate slug: {$slug}, skipping" );
             return false;
         }
 
@@ -40,7 +43,7 @@ class QWE_Publisher {
         // Prepare post data.
         $post_data = array(
             'post_title'   => sanitize_text_field( $article['title'] ),
-            'post_name'    => sanitize_title( $article['slug'] ),
+            'post_name'    => $slug,
             'post_content' => wp_kses_post( $article['content'] ),
             'post_excerpt' => sanitize_text_field( $article['excerpt'] ),
             'post_status'  => QWE_POST_STATUS,

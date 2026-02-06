@@ -26,7 +26,7 @@ require_once __DIR__ . '/db.php';
 QWE_DB::init_tables();
 
 $secret = htmlspecialchars( $_GET['key'], ENT_QUOTES, 'UTF-8' );
-$base_url = '?key=' . $secret;
+$base_url = '?key=' . urlencode( $_GET['key'] );
 $categories = unserialize( QWE_CATEGORIES );
 
 // Determine current view/tab early (needed for redirect context).
