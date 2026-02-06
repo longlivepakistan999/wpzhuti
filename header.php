@@ -27,7 +27,7 @@
             ?>
                 <<?php echo $title_tag; // phpcs:ignore ?> class="site-title">
                     <a href="<?php echo esc_url( home_url( '/' ) ); ?>">
-                        <span class="site-logo-icon" aria-hidden="true">&#x1F916;</span>
+                        <img class="site-logo-icon" src="<?php echo esc_url( get_template_directory_uri() . '/assets/images/icon.svg' ); ?>" alt="" width="32" height="32" aria-hidden="true">
                         <?php echo esc_html( get_bloginfo( 'name' ) ); ?>
                     </a>
                 </<?php echo $title_tag; // phpcs:ignore ?>>
