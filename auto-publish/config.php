@@ -1,0 +1,103 @@
+<?php
+/**
+ * Auto-Publish Configuration
+ *
+ * @package QWE_Auto_Publish
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+    // Allow CLI execution by bootstrapping WordPress.
+    $wp_load = dirname( __FILE__ ) . '/../../../../wp-load.php';
+    if ( file_exists( $wp_load ) ) {
+        require_once $wp_load;
+    } else {
+        die( 'Cannot find wp-load.php' );
+    }
+}
+
+// ============================================================
+// AI API Settings
+// ============================================================
+
+// Supported: 'claude' or 'openai'
+define( 'QWE_AI_PROVIDER', 'claude' );
+
+// Claude API
+define( 'QWE_CLAUDE_API_KEY', '' );  // sk-ant-...
+define( 'QWE_CLAUDE_MODEL', 'claude-sonnet-4-5-20250929' );
+
+// OpenAI API
+define( 'QWE_OPENAI_API_KEY', '' );  // sk-...
+define( 'QWE_OPENAI_MODEL', 'gpt-4o' );
+
+// ============================================================
+// Publishing Settings
+// ============================================================
+
+// Articles per run (each cron execution).
+define( 'QWE_ARTICLES_PER_RUN', 3 );
+
+// Post status: 'publish' for immediate, 'draft' for manual review.
+define( 'QWE_POST_STATUS', 'publish' );
+
+// WordPress author ID for published articles.
+define( 'QWE_AUTHOR_ID', 1 );
+
+// ============================================================
+// Trending Settings
+// ============================================================
+
+// Enable or disable trending/hot topic articles.
+define( 'QWE_TRENDING_ENABLED', true );
+
+// Ratio: percentage of articles from trending (rest from long-tail).
+// 35 means 35% trending, 65% long-tail.
+define( 'QWE_TRENDING_RATIO', 35 );
+
+// Reddit AI subreddits to monitor (all AI-specific, no filtering needed).
+define( 'QWE_REDDIT_SUBREDDITS', serialize( array(
+    'ChatGPT',
+    'artificial',
+    'midjourney',
+    'StableDiffusion',
+    'LocalLLaMA',
+    'ClaudeAI',
+    'singularity',
+) ) );
+
+// Max trending topics to fetch per subreddit per run.
+define( 'QWE_TRENDING_PER_SUB', 5 );
+
+// ============================================================
+// Database
+// ============================================================
+
+define( 'QWE_DB_PATH', dirname( __FILE__ ) . '/data/auto_publish.db' );
+
+// ============================================================
+// Security key for web-based cron trigger.
+// Usage: /auto-publish/cron.php?key=YOUR_SECRET_KEY
+// ============================================================
+
+define( 'QWE_CRON_SECRET', 'CHANGE_THIS_TO_A_RANDOM_STRING' );
+
+// ============================================================
+// Category mapping: tutorial_category slug => display name
+// Must match your WordPress tutorial_category taxonomy slugs.
+// ============================================================
+
+define( 'QWE_CATEGORIES', serialize( array(
+    'chatgpt-llms'      => 'ChatGPT & LLMs',
+    'ai-art-design'     => 'AI Art & Design',
+    'ai-coding'         => 'AI Coding',
+    'ai-data-analysis'  => 'AI Data Analysis',
+    'ai-writing'        => 'AI Writing',
+    'ai-video-audio'    => 'AI Video & Audio',
+    'ai-business'       => 'AI for Business',
+) ) );
+
+// ============================================================
+// Content language
+// ============================================================
+
+define( 'QWE_CONTENT_LANGUAGE', 'English' );
