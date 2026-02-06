@@ -176,6 +176,68 @@ function sanitize_slug( $input ) {
     return preg_replace( '/[^a-z0-9\-]/', '', strtolower( trim( $input ) ) );
 }
 
+/**
+ * Render pagination links.
+ *
+ * @param int    $current   Current page number.
+ * @param int    $total     Total pages.
+ * @param int    $count     Total items.
+ * @param string $param     URL parameter name for page number.
+ * @param string $base_url  Base URL with key param.
+ * @param array  $extra     Extra URL parameters to preserve.
+ */
+function render_pagination( $current, $total, $count, $param, $base_url, $extra = array() ) {
+    if ( $total <= 1 ) {
+        return;
+    }
+
+    $qs = '';
+    foreach ( $extra as $k => $v ) {
+        $qs .= '&' . htmlspecialchars( $k ) . '=' . htmlspecialchars( $v );
+    }
+
+    echo '<div class="pagination">';
+
+    // Previous.
+    if ( $current > 1 ) {
+        echo '<a href="' . $base_url . $qs . '&' . $param . '=' . ( $current - 1 ) . '">&laquo;</a>';
+    }
+
+    // Page numbers (show max 7 pages with ellipsis).
+    $start = max( 1, $current - 3 );
+    $end   = min( $total, $current + 3 );
+
+    if ( $start > 1 ) {
+        echo '<a href="' . $base_url . $qs . '&' . $param . '=1">1</a>';
+        if ( $start > 2 ) {
+            echo '<span class="info-text">...</span>';
+        }
+    }
+
+    for ( $p = $start; $p <= $end; $p++ ) {
+        if ( $p === $current ) {
+            echo '<span class="current">' . $p . '</span>';
+        } else {
+            echo '<a href="' . $base_url . $qs . '&' . $param . '=' . $p . '">' . $p . '</a>';
+        }
+    }
+
+    if ( $end < $total ) {
+        if ( $end < $total - 1 ) {
+            echo '<span class="info-text">...</span>';
+        }
+        echo '<a href="' . $base_url . $qs . '&' . $param . '=' . $total . '">' . $total . '</a>';
+    }
+
+    // Next.
+    if ( $current < $total ) {
+        echo '<a href="' . $base_url . $qs . '&' . $param . '=' . ( $current + 1 ) . '">&raquo;</a>';
+    }
+
+    echo '<span class="info-text">(' . $count . ' total)</span>';
+    echo '</div>';
+}
+
 // Get stats.
 $stats = QWE_DB::get_stats();
 $pending = QWE_DB::count_pending_keywords();
@@ -197,16 +259,27 @@ if ( 'keywords' === $view ) {
     $kw_pages = max( 1, ceil( $kw_total / $kw_per_page ) );
 }
 
-// Get recent articles.
+// Pagination settings.
+$per_page = 20;
 $pdo = QWE_DB::connect();
-$recent = $pdo->query(
-    "SELECT * FROM articles ORDER BY created_at DESC LIMIT 30"
-)->fetchAll( PDO::FETCH_ASSOC );
 
-// Get pending trending.
-$pending_trending = $pdo->query(
-    "SELECT * FROM trending WHERE status = 'pending' ORDER BY score DESC LIMIT 20"
-)->fetchAll( PDO::FETCH_ASSOC );
+// Articles pagination (dashboard view).
+$art_page = max( 1, isset( $_GET['art_page'] ) ? (int) $_GET['art_page'] : 1 );
+$art_total = (int) $pdo->query( "SELECT COUNT(*) FROM articles" )->fetchColumn();
+$art_pages = max( 1, ceil( $art_total / $per_page ) );
+$art_offset = ( $art_page - 1 ) * $per_page;
+$stmt = $pdo->prepare( "SELECT * FROM articles ORDER BY created_at DESC LIMIT ? OFFSET ?" );
+$stmt->execute( array( $per_page, $art_offset ) );
+$recent = $stmt->fetchAll( PDO::FETCH_ASSOC );
+
+// Trending pagination (trending view).
+$tr_page = max( 1, isset( $_GET['tr_page'] ) ? (int) $_GET['tr_page'] : 1 );
+$tr_total = (int) $pdo->query( "SELECT COUNT(*) FROM trending WHERE status = 'pending'" )->fetchColumn();
+$tr_pages = max( 1, ceil( $tr_total / $per_page ) );
+$tr_offset = ( $tr_page - 1 ) * $per_page;
+$stmt = $pdo->prepare( "SELECT * FROM trending WHERE status = 'pending' ORDER BY score DESC LIMIT ? OFFSET ?" );
+$stmt->execute( array( $per_page, $tr_offset ) );
+$pending_trending = $stmt->fetchAll( PDO::FETCH_ASSOC );
 
 // Get log tail.
 $log_content = '';
@@ -385,7 +458,7 @@ if ( file_exists( $log_file ) ) {
 
         <!-- Recent Articles -->
         <div class="section">
-            <h2>Recent Articles (Last 30)</h2>
+            <h2>Published Articles (<?php echo $art_total; ?>)</h2>
             <?php if ( empty( $recent ) ) : ?>
                 <p style="color:#64748b">No articles published yet.</p>
             <?php else : ?>
@@ -402,6 +475,7 @@ if ( file_exists( $log_file ) ) {
                 </tr>
                 <?php endforeach; ?>
             </table>
+            <?php render_pagination( $art_page, $art_pages, $art_total, 'art_page', $base_url ); ?>
             <?php endif; ?>
         </div>
 
@@ -495,19 +569,7 @@ if ( file_exists( $log_file ) ) {
                 <?php endforeach; ?>
             </table>
 
-            <!-- Pagination -->
-            <?php if ( $kw_pages > 1 ) : ?>
-            <div class="pagination">
-                <?php for ( $p = 1; $p <= $kw_pages; $p++ ) : ?>
-                    <?php if ( $p === $kw_page ) : ?>
-                        <span class="current"><?php echo $p; ?></span>
-                    <?php else : ?>
-                        <a href="<?php echo $base_url; ?>&view=keywords&kw_status=<?php echo $kw_filter_status; ?>&kw_cat=<?php echo $kw_filter_cat; ?>&kw_page=<?php echo $p; ?>"><?php echo $p; ?></a>
-                    <?php endif; ?>
-                <?php endfor; ?>
-                <span class="info-text">(<?php echo $kw_total; ?> keywords)</span>
-            </div>
-            <?php endif; ?>
+            <?php render_pagination( $kw_page, $kw_pages, $kw_total, 'kw_page', $base_url, array( 'view' => 'keywords', 'kw_status' => $kw_filter_status, 'kw_cat' => $kw_filter_cat ) ); ?>
             <?php endif; ?>
         </div>
 
@@ -522,7 +584,7 @@ if ( file_exists( $log_file ) ) {
         </div>
 
         <div class="section">
-            <h2>Pending Trending Topics (<?php echo $stats['pending_trending']; ?>)</h2>
+            <h2>Pending Trending Topics (<?php echo $tr_total; ?>)</h2>
             <p class="info-text" style="margin-bottom:12px">Topics are auto-deleted after 7 days if unused. Used topics are kept permanently as records.</p>
             <?php if ( empty( $pending_trending ) ) : ?>
                 <p class="info-text">No pending trending topics.</p>
@@ -546,11 +608,12 @@ if ( file_exists( $log_file ) ) {
                     <td><?php echo htmlspecialchars( $t['category'] ); ?></td>
                     <td><?php echo $t['fetched_at']; ?></td>
                     <td>
-                        <a href="<?php echo $base_url; ?>&action=delete-trending&tr_id=<?php echo $t['id']; ?>&view=trending" class="btn btn-danger btn-xs" onclick="return confirm('Delete this trending topic?')">Delete</a>
+                        <a href="<?php echo $base_url; ?>&action=delete-trending&tr_id=<?php echo $t['id']; ?>&view=trending&tr_page=<?php echo $tr_page; ?>" class="btn btn-danger btn-xs" onclick="return confirm('Delete this trending topic?')">Delete</a>
                     </td>
                 </tr>
                 <?php endforeach; ?>
             </table>
+            <?php render_pagination( $tr_page, $tr_pages, $tr_total, 'tr_page', $base_url, array( 'view' => 'trending' ) ); ?>
             <?php endif; ?>
         </div>
 
