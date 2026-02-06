@@ -10,6 +10,12 @@
 
 require_once __DIR__ . '/db.php';
 
+// CLI only — prevent web access.
+if ( 'cli' !== php_sapi_name() ) {
+    http_response_code( 403 );
+    die( 'This script must be run from the command line.' );
+}
+
 // Initialize tables.
 QWE_DB::init_tables();
 echo "Database tables created.\n";
