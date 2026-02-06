@@ -173,6 +173,9 @@ function qwe_generate_sample_content() {
     $pages_created = qwe_create_sample_pages();
     $count += $pages_created;
 
+    // Create navigation menus.
+    qwe_create_sample_menus();
+
     set_transient( 'qwe_sample_generated', $count, 30 );
     wp_safe_redirect( admin_url( '?qwe_sample_done=1' ) );
     exit;
@@ -724,16 +727,19 @@ function qwe_create_sample_pages() {
     $pages = array(
         array(
             'title'    => 'About Us',
+            'slug'     => 'about',
             'content'  => qwe_sample_page_content_about(),
             'template' => 'page-about.php',
         ),
         array(
             'title'    => 'Contact',
+            'slug'     => 'contact',
             'content'  => qwe_sample_page_content_contact(),
             'template' => 'page-contact.php',
         ),
         array(
             'title'    => 'Privacy Policy',
+            'slug'     => 'privacy',
             'content'  => qwe_sample_page_content_privacy(),
             'template' => 'page-privacy.php',
         ),
@@ -757,6 +763,7 @@ function qwe_create_sample_pages() {
 
         $page_id = wp_insert_post( array(
             'post_title'   => $page['title'],
+            'post_name'    => $page['slug'],
             'post_content' => $page['content'],
             'post_status'  => 'publish',
             'post_type'    => 'page',
@@ -770,6 +777,201 @@ function qwe_create_sample_pages() {
     }
 
     return $count;
+}
+
+/* =========================================================================
+   Navigation Menu Creation
+   ========================================================================= */
+
+/**
+ * Create primary and footer navigation menus with items.
+ */
+function qwe_create_sample_menus() {
+    // --- Primary Menu ---
+    $primary_menu_name = 'Primary Menu';
+    $primary_menu      = wp_get_nav_menu_object( $primary_menu_name );
+
+    if ( ! $primary_menu ) {
+        $primary_menu_id = wp_create_nav_menu( $primary_menu_name );
+    } else {
+        $primary_menu_id = $primary_menu->term_id;
+    }
+
+    if ( ! is_wp_error( $primary_menu_id ) ) {
+        // Only add items if menu is empty.
+        $existing_items = wp_get_nav_menu_items( $primary_menu_id );
+        if ( empty( $existing_items ) ) {
+            // Home link.
+            wp_update_nav_menu_item( $primary_menu_id, 0, array(
+                'menu-item-title'  => __( 'Home', 'qwe-developer-flavor' ),
+                'menu-item-url'    => home_url( '/' ),
+                'menu-item-status' => 'publish',
+                'menu-item-type'   => 'custom',
+            ) );
+
+            // Tutorials archive.
+            wp_update_nav_menu_item( $primary_menu_id, 0, array(
+                'menu-item-title'  => __( 'Tutorials', 'qwe-developer-flavor' ),
+                'menu-item-url'    => get_post_type_archive_link( 'tutorial' ),
+                'menu-item-status' => 'publish',
+                'menu-item-type'   => 'custom',
+            ) );
+
+            // Tutorial categories as submenu items.
+            $tutorial_cats = get_terms( array(
+                'taxonomy'   => 'tutorial_category',
+                'hide_empty' => false,
+            ) );
+            if ( ! is_wp_error( $tutorial_cats ) && ! empty( $tutorial_cats ) ) {
+                // Get the Tutorials menu item ID for parent reference.
+                $menu_items   = wp_get_nav_menu_items( $primary_menu_id );
+                $tutorials_id = 0;
+                foreach ( $menu_items as $item ) {
+                    if ( 'Tutorials' === $item->title ) {
+                        $tutorials_id = $item->ID;
+                        break;
+                    }
+                }
+
+                foreach ( $tutorial_cats as $cat ) {
+                    wp_update_nav_menu_item( $primary_menu_id, 0, array(
+                        'menu-item-title'     => $cat->name,
+                        'menu-item-object'    => 'tutorial_category',
+                        'menu-item-object-id' => $cat->term_id,
+                        'menu-item-type'      => 'taxonomy',
+                        'menu-item-status'    => 'publish',
+                        'menu-item-parent-id' => $tutorials_id,
+                    ) );
+                }
+            }
+
+            // About Us page.
+            $about_page = get_posts( array(
+                'post_type'      => 'page',
+                'name'           => 'about',
+                'posts_per_page' => 1,
+                'no_found_rows'  => true,
+            ) );
+            if ( ! empty( $about_page ) ) {
+                wp_update_nav_menu_item( $primary_menu_id, 0, array(
+                    'menu-item-title'     => __( 'About Us', 'qwe-developer-flavor' ),
+                    'menu-item-object'    => 'page',
+                    'menu-item-object-id' => $about_page[0]->ID,
+                    'menu-item-type'      => 'post_type',
+                    'menu-item-status'    => 'publish',
+                ) );
+            }
+
+            // Contact page.
+            $contact_page = get_posts( array(
+                'post_type'      => 'page',
+                'name'           => 'contact',
+                'posts_per_page' => 1,
+                'no_found_rows'  => true,
+            ) );
+            if ( ! empty( $contact_page ) ) {
+                wp_update_nav_menu_item( $primary_menu_id, 0, array(
+                    'menu-item-title'     => __( 'Contact', 'qwe-developer-flavor' ),
+                    'menu-item-object'    => 'page',
+                    'menu-item-object-id' => $contact_page[0]->ID,
+                    'menu-item-type'      => 'post_type',
+                    'menu-item-status'    => 'publish',
+                ) );
+            }
+        }
+
+        // Assign to primary location.
+        $locations = get_theme_mod( 'nav_menu_locations', array() );
+        $locations['primary'] = $primary_menu_id;
+        set_theme_mod( 'nav_menu_locations', $locations );
+    }
+
+    // --- Footer Menu ---
+    $footer_menu_name = 'Footer Menu';
+    $footer_menu      = wp_get_nav_menu_object( $footer_menu_name );
+
+    if ( ! $footer_menu ) {
+        $footer_menu_id = wp_create_nav_menu( $footer_menu_name );
+    } else {
+        $footer_menu_id = $footer_menu->term_id;
+    }
+
+    if ( ! is_wp_error( $footer_menu_id ) ) {
+        $existing_items = wp_get_nav_menu_items( $footer_menu_id );
+        if ( empty( $existing_items ) ) {
+            // Home.
+            wp_update_nav_menu_item( $footer_menu_id, 0, array(
+                'menu-item-title'  => __( 'Home', 'qwe-developer-flavor' ),
+                'menu-item-url'    => home_url( '/' ),
+                'menu-item-status' => 'publish',
+                'menu-item-type'   => 'custom',
+            ) );
+
+            // Tutorials.
+            wp_update_nav_menu_item( $footer_menu_id, 0, array(
+                'menu-item-title'  => __( 'All Tutorials', 'qwe-developer-flavor' ),
+                'menu-item-url'    => get_post_type_archive_link( 'tutorial' ),
+                'menu-item-status' => 'publish',
+                'menu-item-type'   => 'custom',
+            ) );
+
+            // About page.
+            $about_page = get_posts( array(
+                'post_type'      => 'page',
+                'name'           => 'about',
+                'posts_per_page' => 1,
+                'no_found_rows'  => true,
+            ) );
+            if ( ! empty( $about_page ) ) {
+                wp_update_nav_menu_item( $footer_menu_id, 0, array(
+                    'menu-item-title'     => __( 'About Us', 'qwe-developer-flavor' ),
+                    'menu-item-object'    => 'page',
+                    'menu-item-object-id' => $about_page[0]->ID,
+                    'menu-item-type'      => 'post_type',
+                    'menu-item-status'    => 'publish',
+                ) );
+            }
+
+            // Contact page.
+            $contact_page = get_posts( array(
+                'post_type'      => 'page',
+                'name'           => 'contact',
+                'posts_per_page' => 1,
+                'no_found_rows'  => true,
+            ) );
+            if ( ! empty( $contact_page ) ) {
+                wp_update_nav_menu_item( $footer_menu_id, 0, array(
+                    'menu-item-title'     => __( 'Contact', 'qwe-developer-flavor' ),
+                    'menu-item-object'    => 'page',
+                    'menu-item-object-id' => $contact_page[0]->ID,
+                    'menu-item-type'      => 'post_type',
+                    'menu-item-status'    => 'publish',
+                ) );
+            }
+
+            // Privacy page.
+            $privacy_page = get_posts( array(
+                'post_type'      => 'page',
+                'name'           => 'privacy',
+                'posts_per_page' => 1,
+                'no_found_rows'  => true,
+            ) );
+            if ( ! empty( $privacy_page ) ) {
+                wp_update_nav_menu_item( $footer_menu_id, 0, array(
+                    'menu-item-title'     => __( 'Privacy Policy', 'qwe-developer-flavor' ),
+                    'menu-item-object'    => 'page',
+                    'menu-item-object-id' => $privacy_page[0]->ID,
+                    'menu-item-type'      => 'post_type',
+                    'menu-item-status'    => 'publish',
+                ) );
+            }
+        }
+
+        // Assign to footer location.
+        $locations = get_theme_mod( 'nav_menu_locations', array() );
+        $locations['footer'] = $footer_menu_id;
+        set_theme_mod( 'nav_menu_locations', $locations );
+    }
 }
 
 /* =========================================================================
