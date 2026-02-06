@@ -97,7 +97,9 @@ class QWE_DB {
         $stmt = $pdo->prepare(
             "INSERT OR IGNORE INTO keywords (keyword, category, difficulty) VALUES (?, ?, ?)"
         );
-        return $stmt->execute( array( $keyword, $category, $difficulty ) );
+        $stmt->execute( array( $keyword, $category, $difficulty ) );
+        // rowCount() returns 0 when OR IGNORE skips a duplicate.
+        return $stmt->rowCount() > 0;
     }
 
     /**

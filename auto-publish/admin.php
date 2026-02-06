@@ -30,7 +30,8 @@ $base_url = '?key=' . $secret;
 $categories = unserialize( QWE_CATEGORIES );
 
 // Determine current view/tab early (needed for redirect context).
-$view = isset( $_GET['view'] ) ? $_GET['view'] : 'dashboard';
+$valid_views = array( 'dashboard', 'keywords', 'trending', 'log' );
+$view = isset( $_GET['view'] ) && in_array( $_GET['view'], $valid_views, true ) ? $_GET['view'] : 'dashboard';
 
 // Handle actions.
 $message = '';
@@ -183,8 +184,10 @@ $pending = QWE_DB::count_pending_keywords();
 $kw_list = array();
 $kw_total = 0;
 if ( 'keywords' === $view ) {
-    $kw_filter_status = isset( $_GET['kw_status'] ) ? $_GET['kw_status'] : 'pending';
-    $kw_filter_cat    = isset( $_GET['kw_cat'] ) ? $_GET['kw_cat'] : 'all';
+    $valid_kw_statuses = array( 'all', 'pending', 'used' );
+    $kw_filter_status = isset( $_GET['kw_status'] ) && in_array( $_GET['kw_status'], $valid_kw_statuses, true ) ? $_GET['kw_status'] : 'pending';
+    $valid_kw_cats = array_merge( array( 'all' ), array_keys( $categories ) );
+    $kw_filter_cat = isset( $_GET['kw_cat'] ) && in_array( $_GET['kw_cat'], $valid_kw_cats, true ) ? $_GET['kw_cat'] : 'all';
     $kw_page          = max( 1, isset( $_GET['kw_page'] ) ? (int) $_GET['kw_page'] : 1 );
     $kw_per_page      = 50;
     $kw_offset        = ( $kw_page - 1 ) * $kw_per_page;
@@ -357,16 +360,21 @@ if ( file_exists( $log_file ) ) {
         <div class="section">
             <h2>Pending Keywords by Category</h2>
             <table>
-                <tr><th>Category</th><th>Pending</th><th>Progress</th></tr>
+                <tr><th>Category</th><th>Pending / Total</th><th>Used %</th></tr>
                 <?php
-                $total_per_cat = 50; // approximate seed count
+                // Get total keywords (pending + used) per category for accurate progress.
+                $all_per_cat = $pdo->query(
+                    "SELECT category, COUNT(*) as count FROM keywords GROUP BY category"
+                )->fetchAll( PDO::FETCH_KEY_PAIR );
                 foreach ( $categories as $slug => $name ) :
                     $count = isset( $pending[ $slug ] ) ? $pending[ $slug ] : 0;
-                    $pct = $total_per_cat > 0 ? min( 100, round( ( $total_per_cat - $count ) / $total_per_cat * 100 ) ) : 0;
+                    $total_in_cat = isset( $all_per_cat[ $slug ] ) ? $all_per_cat[ $slug ] : 0;
+                    $used = $total_in_cat - $count;
+                    $pct = $total_in_cat > 0 ? max( 0, min( 100, round( $used / $total_in_cat * 100 ) ) ) : 0;
                 ?>
                 <tr>
                     <td><?php echo htmlspecialchars( $name ); ?></td>
-                    <td><?php echo $count; ?></td>
+                    <td><?php echo $count; ?> / <?php echo $total_in_cat; ?></td>
                     <td style="width:200px">
                         <div class="progress-bar"><div class="progress-bar__fill" style="width:<?php echo $pct; ?>%"></div></div>
                     </td>
