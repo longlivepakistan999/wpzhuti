@@ -169,6 +169,10 @@ function qwe_generate_sample_content() {
         }
     }
 
+    // Create pages (About, Contact, Privacy Policy).
+    $pages_created = qwe_create_sample_pages();
+    $count += $pages_created;
+
     set_transient( 'qwe_sample_generated', $count, 30 );
     wp_safe_redirect( admin_url( '?qwe_sample_done=1' ) );
     exit;
@@ -204,7 +208,7 @@ function qwe_sample_content_success_notice() {
     delete_transient( 'qwe_sample_generated' );
     echo '<div class="notice notice-success is-dismissible"><p>';
     printf(
-        esc_html__( 'Successfully generated %d sample tutorials with categories!', 'qwe-developer-flavor' ),
+        esc_html__( 'Successfully generated %d sample items (tutorials, categories, and pages)!', 'qwe-developer-flavor' ),
         intval( $count )
     );
     echo '</p></div>';
@@ -704,6 +708,271 @@ function qwe_sample_tutorial_content_sd() {
 
 <!-- wp:paragraph -->
 <p>Understanding key settings will improve your results. Sampling steps (20-30 is usually good), CFG scale (7-12 for most prompts), and image dimensions affect quality and generation time. Experiment with different samplers like Euler a and DPM++ 2M Karras.</p>
+<!-- /wp:paragraph -->';
+}
+
+/* =========================================================================
+   Page Creation
+   ========================================================================= */
+
+/**
+ * Create sample pages (About, Contact, Privacy Policy).
+ *
+ * @return int Number of pages created.
+ */
+function qwe_create_sample_pages() {
+    $pages = array(
+        array(
+            'title'    => 'About Us',
+            'content'  => qwe_sample_page_content_about(),
+            'template' => 'page-about.php',
+        ),
+        array(
+            'title'    => 'Contact',
+            'content'  => qwe_sample_page_content_contact(),
+            'template' => 'page-contact.php',
+        ),
+        array(
+            'title'    => 'Privacy Policy',
+            'content'  => qwe_sample_page_content_privacy(),
+            'template' => 'page-privacy.php',
+        ),
+    );
+
+    $count = 0;
+    foreach ( $pages as $page ) {
+        $existing = get_posts( array(
+            'post_type'              => 'page',
+            'title'                  => $page['title'],
+            'posts_per_page'         => 1,
+            'no_found_rows'          => true,
+            'update_post_meta_cache' => false,
+            'update_post_term_cache' => false,
+        ) );
+        if ( ! empty( $existing ) ) {
+            // Page exists — just ensure the template is set.
+            update_post_meta( $existing[0]->ID, '_wp_page_template', $page['template'] );
+            continue;
+        }
+
+        $page_id = wp_insert_post( array(
+            'post_title'   => $page['title'],
+            'post_content' => $page['content'],
+            'post_status'  => 'publish',
+            'post_type'    => 'page',
+            'post_author'  => get_current_user_id(),
+        ) );
+
+        if ( ! is_wp_error( $page_id ) ) {
+            update_post_meta( $page_id, '_wp_page_template', $page['template'] );
+            $count++;
+        }
+    }
+
+    return $count;
+}
+
+/* =========================================================================
+   Page Content Functions
+   ========================================================================= */
+
+function qwe_sample_page_content_about() {
+    return '<!-- wp:heading -->
+<h2>Our Mission</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>QWE AI Academy was founded with a simple goal: make AI education free and accessible to everyone. We believe that understanding AI tools is becoming an essential skill, and no one should be left behind because of cost barriers.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading -->
+<h2>What We Offer</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>We provide comprehensive, beginner-friendly tutorials on the most popular AI tools available today. From ChatGPT and Claude to Midjourney and Stable Diffusion, our step-by-step guides help you master AI at your own pace.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list -->
+<ul>
+<li><strong>100% Free:</strong> All our tutorials are completely free. No hidden paywalls, no premium tiers, no subscriptions required.</li>
+<li><strong>Beginner-Friendly:</strong> Every tutorial is written in plain language with clear, step-by-step instructions that anyone can follow.</li>
+<li><strong>Practical Focus:</strong> We focus on real-world applications. Learn skills you can use immediately in your work and daily life.</li>
+<li><strong>Always Updated:</strong> AI tools evolve rapidly. We continuously update our tutorials to reflect the latest features and best practices.</li>
+</ul>
+<!-- /wp:list -->
+
+<!-- wp:heading -->
+<h2>Our Topics</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>Our tutorials cover a wide range of AI topics designed for learners at every level:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list -->
+<ul>
+<li><strong>ChatGPT &amp; LLMs:</strong> Master conversational AI tools for writing, research, and problem-solving.</li>
+<li><strong>AI Art &amp; Design:</strong> Create stunning images with Midjourney, DALL-E, and Stable Diffusion.</li>
+<li><strong>AI Coding:</strong> Boost your programming productivity with GitHub Copilot, Cursor, and AI coding assistants.</li>
+<li><strong>AI for Business:</strong> Automate tasks, improve workflows, and make data-driven decisions.</li>
+<li><strong>AI Writing:</strong> Craft compelling content faster with AI writing tools.</li>
+<li><strong>AI Video &amp; Audio:</strong> Generate and edit multimedia content using cutting-edge AI tools.</li>
+<li><strong>AI Data Analysis:</strong> Turn raw data into actionable insights without coding expertise.</li>
+</ul>
+<!-- /wp:list -->
+
+<!-- wp:heading -->
+<h2>Who We Are</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>We are a team of AI enthusiasts, educators, and tech professionals who are passionate about sharing knowledge. Our writers use these AI tools daily and bring practical, real-world experience to every tutorial we publish.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading -->
+<h2>Join Our Community</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>Learning AI is better together. Follow us on social media to stay updated with new tutorials, tips, and AI news. Have a suggestion for a tutorial topic? We would love to hear from you — reach out through our contact page!</p>
+<!-- /wp:paragraph -->';
+}
+
+function qwe_sample_page_content_contact() {
+    return '<!-- wp:heading -->
+<h2>Get in Touch</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>We would love to hear from you! Whether you have a question about one of our tutorials, a suggestion for a new topic, or just want to say hello, feel free to reach out.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading -->
+<h2>Tutorial Suggestions</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>Is there an AI tool or topic you would like us to cover? We are always looking for new tutorial ideas. Let us know what you want to learn, and we will do our best to create a comprehensive guide for it.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading -->
+<h2>Report an Issue</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>Found an error in one of our tutorials? AI tools update frequently, and sometimes our instructions may become outdated. Please let us know so we can update the content and keep our tutorials accurate for everyone.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading -->
+<h2>How to Reach Us</h2>
+<!-- /wp:heading -->
+
+<!-- wp:list -->
+<ul>
+<li><strong>Email:</strong> contact@qwe.edu.pl</li>
+<li><strong>Response Time:</strong> We typically respond within 24-48 hours on business days.</li>
+<li><strong>Social Media:</strong> You can also reach us through our social media channels linked in the footer.</li>
+</ul>
+<!-- /wp:list -->
+
+<!-- wp:heading -->
+<h2>Collaboration</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>Interested in contributing tutorials or collaborating with QWE AI Academy? We welcome guest writers and partners who share our passion for AI education. Send us an email with your proposal and we will get back to you.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Please note that all tutorials on QWE AI Academy are free. We do not accept sponsored content or paid promotions that compromise the quality and impartiality of our educational material.</p>
+<!-- /wp:paragraph -->';
+}
+
+function qwe_sample_page_content_privacy() {
+    return '<!-- wp:heading -->
+<h2>Introduction</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>QWE AI Academy ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard information when you visit our website www.qwe.edu.pl.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading -->
+<h2>Information We Collect</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>We collect minimal information to provide and improve our free educational service:</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:list -->
+<ul>
+<li><strong>Usage Data:</strong> We collect anonymous analytics data including pages visited, time spent on pages, browser type, device type, and referring website. This helps us understand which tutorials are most helpful.</li>
+<li><strong>Contact Information:</strong> If you contact us via email, we collect your email address and the content of your message to respond to your inquiry.</li>
+<li><strong>Cookies:</strong> We use essential cookies for basic website functionality and analytics cookies to understand how our site is used.</li>
+</ul>
+<!-- /wp:list -->
+
+<!-- wp:heading -->
+<h2>What We Do NOT Collect</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>QWE AI Academy does not require user registration. We do not collect passwords, payment information, personal identification numbers, or any sensitive personal data. Our site is designed to be used without creating an account.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading -->
+<h2>How We Use Information</h2>
+<!-- /wp:heading -->
+
+<!-- wp:list -->
+<ul>
+<li>To maintain and improve our website and tutorials</li>
+<li>To understand which content is most valuable to our readers</li>
+<li>To respond to inquiries and feedback</li>
+<li>To detect and prevent technical issues</li>
+</ul>
+<!-- /wp:list -->
+
+<!-- wp:heading -->
+<h2>Third-Party Services</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>We may use third-party analytics services (such as Google Analytics) to help us understand how our website is used. These services may collect information sent by your browser as part of a web page request. Please refer to their respective privacy policies for more information.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading -->
+<h2>Data Security</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>We implement appropriate technical and organizational measures to protect the information we collect. However, no method of transmission over the Internet is 100% secure, and we cannot guarantee absolute security.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading -->
+<h2>Your Rights</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>Under applicable data protection laws (including GDPR), you have the right to access, correct, delete, or restrict the processing of your personal data. To exercise these rights, please contact us at the email address provided on our Contact page.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading -->
+<h2>Changes to This Policy</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>We may update this Privacy Policy from time to time. Any changes will be posted on this page with an updated "Last updated" date. We encourage you to review this page periodically.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading -->
+<h2>Contact Us</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>If you have any questions about this Privacy Policy, please contact us through our Contact page or email us at contact@qwe.edu.pl.</p>
 <!-- /wp:paragraph -->';
 }
 
