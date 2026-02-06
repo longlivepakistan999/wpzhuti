@@ -68,6 +68,12 @@ define( 'QWE_REDDIT_SUBREDDITS', serialize( array(
 // Max trending topics to fetch per subreddit per run.
 define( 'QWE_TRENDING_PER_SUB', 5 );
 
+// Trending sources (3 total):
+//   1. Reddit     — AI-specific subreddits above (no filtering needed)
+//   2. Hacker News — top stories filtered by AI keyword relevance
+//   3. RSS Feeds  — AI news from TechCrunch AI, The Verge AI, VentureBeat AI,
+//                    Google AI Blog, OpenAI Blog, MIT Tech Review (filtered)
+
 // ============================================================
 // Database
 // ============================================================

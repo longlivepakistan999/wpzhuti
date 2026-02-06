@@ -191,6 +191,7 @@ if ( file_exists( $log_file ) ) {
                 <tr><td>Post Status</td><td><?php echo QWE_POST_STATUS; ?></td></tr>
                 <tr><td>Trending</td><td><span class="badge <?php echo QWE_TRENDING_ENABLED ? 'badge-enabled' : 'badge-disabled'; ?>"><?php echo QWE_TRENDING_ENABLED ? 'ENABLED' : 'DISABLED'; ?></span></td></tr>
                 <tr><td>Trending Ratio</td><td><?php echo QWE_TRENDING_RATIO; ?>% trending / <?php echo 100 - QWE_TRENDING_RATIO; ?>% long-tail</td></tr>
+                <tr><td>Trending Sources</td><td>Reddit (7 AI subs) + Hacker News (AI filtered) + RSS Feeds (6 AI blogs)</td></tr>
             </table>
         </div>
 
@@ -247,7 +248,15 @@ if ( file_exists( $log_file ) ) {
                 <?php foreach ( $pending_trending as $t ) : ?>
                 <tr>
                     <td><?php echo htmlspecialchars( mb_strimwidth( $t['title'], 0, 70, '...' ) ); ?></td>
-                    <td>r/<?php echo htmlspecialchars( $t['subreddit'] ); ?></td>
+                    <td><?php
+                        if ( 'reddit' === $t['source'] ) {
+                            echo 'r/' . htmlspecialchars( $t['subreddit'] );
+                        } elseif ( 'hackernews' === $t['source'] ) {
+                            echo 'Hacker News';
+                        } else {
+                            echo htmlspecialchars( $t['subreddit'] ); // RSS feed name stored in subreddit field.
+                        }
+                    ?></td>
                     <td><?php echo $t['score']; ?></td>
                     <td><?php echo htmlspecialchars( $t['category'] ); ?></td>
                     <td><?php echo $t['fetched_at']; ?></td>
