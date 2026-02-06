@@ -81,6 +81,7 @@ class QWE_DB {
         $pdo->exec( "CREATE INDEX IF NOT EXISTS idx_keywords_status ON keywords(status)" );
         $pdo->exec( "CREATE INDEX IF NOT EXISTS idx_keywords_category ON keywords(category)" );
         $pdo->exec( "CREATE INDEX IF NOT EXISTS idx_trending_status ON trending(status)" );
+        $pdo->exec( "CREATE UNIQUE INDEX IF NOT EXISTS idx_trending_title ON trending(title)" );
         $pdo->exec( "CREATE INDEX IF NOT EXISTS idx_articles_keyword_type ON articles(keyword_type)" );
         $pdo->exec( "CREATE INDEX IF NOT EXISTS idx_articles_category ON articles(category)" );
     }
@@ -239,16 +240,11 @@ class QWE_DB {
      */
     public static function add_trending( $title, $source, $subreddit, $score = 0, $category = null ) {
         $pdo = self::connect();
-        // Check if similar title already exists.
-        $stmt = $pdo->prepare( "SELECT id FROM trending WHERE title = ?" );
-        $stmt->execute( array( $title ) );
-        if ( $stmt->fetch() ) {
-            return false;
-        }
         $stmt = $pdo->prepare(
-            "INSERT INTO trending (title, source, subreddit, score, category) VALUES (?, ?, ?, ?, ?)"
+            "INSERT OR IGNORE INTO trending (title, source, subreddit, score, category) VALUES (?, ?, ?, ?, ?)"
         );
-        return $stmt->execute( array( $title, $source, $subreddit, $score, $category ) );
+        $stmt->execute( array( $title, $source, $subreddit, $score, $category ) );
+        return $stmt->rowCount() > 0;
     }
 
     /**
@@ -331,8 +327,8 @@ class QWE_DB {
      */
     public static function keyword_already_used( $keyword ) {
         $pdo = self::connect();
-        $stmt = $pdo->prepare( "SELECT id FROM articles WHERE keyword = ?" );
-        $stmt->execute( array( strtolower( $keyword ) ) );
+        $stmt = $pdo->prepare( "SELECT id FROM articles WHERE LOWER(keyword) = LOWER(?)" );
+        $stmt->execute( array( $keyword ) );
         return (bool) $stmt->fetch();
     }
 }

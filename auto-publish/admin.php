@@ -557,12 +557,12 @@ if ( 'log' === $view && file_exists( $log_file ) ) {
                 <tr><th>ID</th><th>Title</th><th>Type</th><th>Category</th><th>Difficulty</th><th>Date</th></tr>
                 <?php foreach ( $recent as $article ) : ?>
                 <tr>
-                    <td><?php echo $article['post_id']; ?></td>
+                    <td><?php echo (int) $article['post_id']; ?></td>
                     <td><?php echo htmlspecialchars( mb_strimwidth( $article['title'], 0, 60, '...' ) ); ?></td>
                     <td><span class="badge badge-<?php echo safe_css_class( $article['keyword_type'] ); ?>"><?php echo htmlspecialchars( $article['keyword_type'] ); ?></span></td>
                     <td><?php echo htmlspecialchars( $article['category'] ); ?></td>
                     <td><span class="badge badge-<?php echo safe_css_class( $article['difficulty'] ); ?>"><?php echo htmlspecialchars( $article['difficulty'] ); ?></span></td>
-                    <td><?php echo $article['created_at']; ?></td>
+                    <td><?php echo htmlspecialchars( $article['created_at'] ); ?></td>
                 </tr>
                 <?php endforeach; ?>
             </table>
@@ -637,7 +637,7 @@ if ( 'log' === $view && file_exists( $log_file ) ) {
                 <tr><th>ID</th><th>Keyword</th><th>Category</th><th>Difficulty</th><th>Status</th><th>Post ID</th><th>Action</th></tr>
                 <?php foreach ( $kw_list as $kw ) : ?>
                 <tr>
-                    <td><?php echo $kw['id']; ?></td>
+                    <td><?php echo (int) $kw['id']; ?></td>
                     <td><?php echo htmlspecialchars( $kw['keyword'] ); ?></td>
                     <td><?php echo htmlspecialchars( isset( $categories[ $kw['category'] ] ) ? $categories[ $kw['category'] ] : $kw['category'] ); ?></td>
                     <td><span class="badge badge-<?php echo safe_css_class( $kw['difficulty'] ); ?>"><?php echo htmlspecialchars( $kw['difficulty'] ); ?></span></td>
@@ -648,7 +648,7 @@ if ( 'log' === $view && file_exists( $log_file ) ) {
                             <span class="badge badge-enabled">pending</span>
                         <?php endif; ?>
                     </td>
-                    <td><?php echo $kw['post_id'] ? $kw['post_id'] : '-'; ?></td>
+                    <td><?php echo $kw['post_id'] ? (int) $kw['post_id'] : '-'; ?></td>
                     <td>
                         <?php if ( 'pending' === $kw['status'] ) : ?>
                         <a href="<?php echo $base_url; ?>&action=delete-keyword&kw_id=<?php echo $kw['id']; ?>&view=keywords&kw_status=<?php echo $kw_filter_status; ?>&kw_cat=<?php echo $kw_filter_cat; ?>&kw_page=<?php echo $kw_page; ?>" class="btn btn-danger btn-xs" onclick="return confirm('Delete this keyword?')">Delete</a>
@@ -684,7 +684,7 @@ if ( 'log' === $view && file_exists( $log_file ) ) {
                 <tr><th>ID</th><th>Title</th><th>Source</th><th>Score</th><th>Category</th><th>Fetched</th><th>Action</th></tr>
                 <?php foreach ( $pending_trending as $t ) : ?>
                 <tr>
-                    <td><?php echo $t['id']; ?></td>
+                    <td><?php echo (int) $t['id']; ?></td>
                     <td><?php echo htmlspecialchars( mb_strimwidth( $t['title'], 0, 70, '...' ) ); ?></td>
                     <td><?php
                         if ( 'reddit' === $t['source'] ) {
@@ -695,9 +695,9 @@ if ( 'log' === $view && file_exists( $log_file ) ) {
                             echo htmlspecialchars( $t['subreddit'] );
                         }
                     ?></td>
-                    <td><?php echo $t['score']; ?></td>
+                    <td><?php echo (int) $t['score']; ?></td>
                     <td><?php echo htmlspecialchars( $t['category'] ); ?></td>
-                    <td><?php echo $t['fetched_at']; ?></td>
+                    <td><?php echo htmlspecialchars( $t['fetched_at'] ); ?></td>
                     <td>
                         <a href="<?php echo $base_url; ?>&action=delete-trending&tr_id=<?php echo $t['id']; ?>&view=trending&tr_page=<?php echo $tr_page; ?>" class="btn btn-danger btn-xs" onclick="return confirm('Delete this trending topic?')">Delete</a>
                     </td>
@@ -752,16 +752,16 @@ if ( 'log' === $view && file_exists( $log_file ) ) {
                         <tr><th>ID</th><th>Keyword</th><th>Category</th><th>Difficulty</th><th>Status</th><th>Action</th></tr>
                         <?php foreach ( $search_results['keywords'] as $kw ) : ?>
                         <tr>
-                            <td><?php echo $kw['id']; ?></td>
+                            <td><?php echo (int) $kw['id']; ?></td>
                             <td><?php echo htmlspecialchars( $kw['keyword'] ); ?></td>
                             <td><?php echo htmlspecialchars( isset( $categories[ $kw['category'] ] ) ? $categories[ $kw['category'] ] : $kw['category'] ); ?></td>
                             <td><span class="badge badge-<?php echo safe_css_class( $kw['difficulty'] ); ?>"><?php echo htmlspecialchars( $kw['difficulty'] ); ?></span></td>
                             <td><span class="badge badge-<?php echo $kw['status'] === 'used' ? 'used' : 'pending'; ?>"><?php echo htmlspecialchars( $kw['status'] ); ?></span></td>
                             <td>
                                 <?php if ( 'pending' === $kw['status'] ) : ?>
-                                <a href="<?php echo $base_url; ?>&action=delete-keyword&kw_id=<?php echo $kw['id']; ?>&view=search&q=<?php echo urlencode( $search_q ); ?>" class="btn btn-danger btn-xs" onclick="return confirm('Delete this keyword?')">Delete</a>
+                                <a href="<?php echo $base_url; ?>&action=delete-keyword&kw_id=<?php echo (int) $kw['id']; ?>&view=search&q=<?php echo urlencode( $search_q ); ?>" class="btn btn-danger btn-xs" onclick="return confirm('Delete this keyword?')">Delete</a>
                                 <?php else : ?>
-                                <span class="info-text">Post #<?php echo $kw['post_id']; ?></span>
+                                <span class="info-text">Post #<?php echo (int) $kw['post_id']; ?></span>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -781,12 +781,12 @@ if ( 'log' === $view && file_exists( $log_file ) ) {
                         <tr><th>Post ID</th><th>Title</th><th>Keyword</th><th>Type</th><th>Category</th><th>Date</th></tr>
                         <?php foreach ( $search_results['articles'] as $art ) : ?>
                         <tr>
-                            <td><?php echo $art['post_id']; ?></td>
+                            <td><?php echo (int) $art['post_id']; ?></td>
                             <td><?php echo htmlspecialchars( mb_strimwidth( $art['title'], 0, 60, '...' ) ); ?></td>
                             <td><?php echo htmlspecialchars( mb_strimwidth( $art['keyword'], 0, 40, '...' ) ); ?></td>
                             <td><span class="badge badge-<?php echo safe_css_class( $art['keyword_type'] ); ?>"><?php echo htmlspecialchars( $art['keyword_type'] ); ?></span></td>
                             <td><?php echo htmlspecialchars( $art['category'] ); ?></td>
-                            <td><?php echo $art['created_at']; ?></td>
+                            <td><?php echo htmlspecialchars( $art['created_at'] ); ?></td>
                         </tr>
                         <?php endforeach; ?>
                     </table>
@@ -804,7 +804,7 @@ if ( 'log' === $view && file_exists( $log_file ) ) {
                         <tr><th>ID</th><th>Title</th><th>Source</th><th>Score</th><th>Status</th><th>Action</th></tr>
                         <?php foreach ( $search_results['trending'] as $t ) : ?>
                         <tr>
-                            <td><?php echo $t['id']; ?></td>
+                            <td><?php echo (int) $t['id']; ?></td>
                             <td><?php echo htmlspecialchars( mb_strimwidth( $t['title'], 0, 60, '...' ) ); ?></td>
                             <td><?php
                                 if ( 'reddit' === $t['source'] ) {
@@ -815,13 +815,13 @@ if ( 'log' === $view && file_exists( $log_file ) ) {
                                     echo htmlspecialchars( $t['subreddit'] );
                                 }
                             ?></td>
-                            <td><?php echo $t['score']; ?></td>
+                            <td><?php echo (int) $t['score']; ?></td>
                             <td><span class="badge badge-<?php echo $t['status'] === 'used' ? 'used' : 'pending'; ?>"><?php echo htmlspecialchars( $t['status'] ); ?></span></td>
                             <td>
                                 <?php if ( 'pending' === $t['status'] ) : ?>
-                                <a href="<?php echo $base_url; ?>&action=delete-trending&tr_id=<?php echo $t['id']; ?>&view=search&q=<?php echo urlencode( $search_q ); ?>" class="btn btn-danger btn-xs" onclick="return confirm('Delete this trending topic?')">Delete</a>
+                                <a href="<?php echo $base_url; ?>&action=delete-trending&tr_id=<?php echo (int) $t['id']; ?>&view=search&q=<?php echo urlencode( $search_q ); ?>" class="btn btn-danger btn-xs" onclick="return confirm('Delete this trending topic?')">Delete</a>
                                 <?php else : ?>
-                                <span class="info-text">Post #<?php echo $t['post_id']; ?></span>
+                                <span class="info-text">Post #<?php echo (int) $t['post_id']; ?></span>
                                 <?php endif; ?>
                             </td>
                         </tr>

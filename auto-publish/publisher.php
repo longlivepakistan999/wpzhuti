@@ -61,6 +61,15 @@ class QWE_Publisher {
             wp_set_object_terms( $post_id, $term_id, 'tutorial_category' );
         }
 
+        // Assign tags (post_tag taxonomy).
+        if ( ! empty( $article['tags'] ) && is_array( $article['tags'] ) ) {
+            $clean_tags = array_map( 'sanitize_text_field', $article['tags'] );
+            $clean_tags = array_filter( $clean_tags );
+            if ( ! empty( $clean_tags ) ) {
+                wp_set_post_tags( $post_id, $clean_tags );
+            }
+        }
+
         // Set difficulty level.
         update_post_meta( $post_id, '_qwe_difficulty', sanitize_text_field( $article['difficulty'] ) );
 
