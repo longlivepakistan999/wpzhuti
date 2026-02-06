@@ -3,8 +3,8 @@
  * Front Page Template — AI University Style
  *
  * Sections:
- *  1. Hero — University Welcome Banner
- *  2. Trust Bar — Credibility Indicators
+ *  1. Hero — Immersive Welcome with stats & floating cards
+ *  2. How It Works — 3-step process
  *  3. Departments — AI Learning Categories
  *  4. Featured Courses — Highlighted Tutorials
  *  5. Why Us — University Advantages
@@ -20,44 +20,47 @@ get_header();
 <!-- 1. HERO -->
 <?php get_template_part( 'template-parts/hero/hero', 'front' ); ?>
 
-<!-- 2. TRUST BAR -->
-<section class="trust-bar">
+<!-- 2. HOW IT WORKS -->
+<section class="section how-it-works">
     <div class="container">
-        <div class="trust-bar__grid">
-            <div class="trust-bar__item">
-                <span class="trust-bar__icon" aria-hidden="true">&#x1F393;</span>
-                <div>
-                    <strong><?php esc_html_e( '100% Free', 'qwe-developer-flavor' ); ?></strong>
-                    <span><?php esc_html_e( 'No hidden fees', 'qwe-developer-flavor' ); ?></span>
+        <div class="section__header">
+            <span class="section__badge"><?php esc_html_e( 'How It Works', 'qwe-developer-flavor' ); ?></span>
+            <h2><?php esc_html_e( 'Start Learning in 3 Simple Steps', 'qwe-developer-flavor' ); ?></h2>
+        </div>
+
+        <div class="steps-grid">
+            <div class="step-card" data-reveal>
+                <div class="step-card__number">1</div>
+                <div class="step-card__icon" aria-hidden="true">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 </div>
+                <h3><?php esc_html_e( 'Choose a Topic', 'qwe-developer-flavor' ); ?></h3>
+                <p><?php esc_html_e( 'Browse our AI departments and pick the topic that interests you most.', 'qwe-developer-flavor' ); ?></p>
             </div>
-            <div class="trust-bar__item">
-                <span class="trust-bar__icon" aria-hidden="true">&#x1F4DD;</span>
-                <div>
-                    <strong><?php esc_html_e( 'No Registration', 'qwe-developer-flavor' ); ?></strong>
-                    <span><?php esc_html_e( 'Start learning instantly', 'qwe-developer-flavor' ); ?></span>
+            <div class="step-card__connector" aria-hidden="true"></div>
+            <div class="step-card" data-reveal>
+                <div class="step-card__number">2</div>
+                <div class="step-card__icon" aria-hidden="true">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
                 </div>
+                <h3><?php esc_html_e( 'Follow the Tutorial', 'qwe-developer-flavor' ); ?></h3>
+                <p><?php esc_html_e( 'Read step-by-step instructions with real examples. No prior experience needed.', 'qwe-developer-flavor' ); ?></p>
             </div>
-            <div class="trust-bar__item">
-                <span class="trust-bar__icon" aria-hidden="true">&#x1F504;</span>
-                <div>
-                    <strong><?php esc_html_e( 'Always Updated', 'qwe-developer-flavor' ); ?></strong>
-                    <span><?php esc_html_e( 'Latest AI tools covered', 'qwe-developer-flavor' ); ?></span>
+            <div class="step-card__connector" aria-hidden="true"></div>
+            <div class="step-card" data-reveal>
+                <div class="step-card__number">3</div>
+                <div class="step-card__icon" aria-hidden="true">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                 </div>
-            </div>
-            <div class="trust-bar__item">
-                <span class="trust-bar__icon" aria-hidden="true">&#x1F310;</span>
-                <div>
-                    <strong><?php esc_html_e( 'Open Access', 'qwe-developer-flavor' ); ?></strong>
-                    <span><?php esc_html_e( 'Learn from anywhere', 'qwe-developer-flavor' ); ?></span>
-                </div>
+                <h3><?php esc_html_e( 'Master AI Skills', 'qwe-developer-flavor' ); ?></h3>
+                <p><?php esc_html_e( 'Apply what you learned and level up. Move from beginner to advanced at your own pace.', 'qwe-developer-flavor' ); ?></p>
             </div>
         </div>
     </div>
 </section>
 
 <!-- 3. DEPARTMENTS -->
-<section class="section" id="learning-paths">
+<section class="section section--alt" id="learning-paths">
     <div class="container">
         <div class="section__header">
             <span class="section__badge"><?php esc_html_e( 'Departments', 'qwe-developer-flavor' ); ?></span>
@@ -92,7 +95,7 @@ get_header();
                         $icon = isset( $dept_icons[ $i ] ) ? $dept_icons[ $i ] : '&#x1F4DA;';
                     }
                     ?>
-                    <a href="<?php echo esc_url( get_term_link( $cat ) ); ?>" class="dept-card">
+                    <a href="<?php echo esc_url( get_term_link( $cat ) ); ?>" class="dept-card" data-reveal>
                         <div class="dept-card__icon"><?php echo wp_kses_post( $icon ); ?></div>
                         <div class="dept-card__body">
                             <h3 class="dept-card__title"><?php echo esc_html( $cat->name ); ?></h3>
@@ -119,7 +122,7 @@ get_header();
 </section>
 
 <!-- 4. FEATURED COURSES -->
-<section class="section section--alt">
+<section class="section">
     <div class="container">
         <div class="section__header">
             <span class="section__badge"><?php esc_html_e( 'Featured Courses', 'qwe-developer-flavor' ); ?></span>
@@ -158,31 +161,43 @@ get_header();
 </section>
 
 <!-- 5. WHY US -->
-<section class="section">
+<section class="section section--dark">
     <div class="container">
-        <div class="section__header">
-            <span class="section__badge"><?php esc_html_e( 'Why QWE', 'qwe-developer-flavor' ); ?></span>
+        <div class="section__header section__header--light">
+            <span class="section__badge section__badge--dark"><?php esc_html_e( 'Why QWE', 'qwe-developer-flavor' ); ?></span>
             <h2><?php esc_html_e( 'Why Study at QWE AI Academy?', 'qwe-developer-flavor' ); ?></h2>
             <p><?php esc_html_e( 'We make learning AI accessible, practical, and enjoyable for everyone.', 'qwe-developer-flavor' ); ?></p>
         </div>
 
         <div class="advantages-grid">
-            <div class="advantage-card">
+            <div class="advantage-card advantage-card--dark" data-reveal>
+                <div class="advantage-card__icon-wrap" aria-hidden="true">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                </div>
                 <div class="advantage-card__number">01</div>
                 <h3><?php esc_html_e( 'Zero to Hero Curriculum', 'qwe-developer-flavor' ); ?></h3>
                 <p><?php esc_html_e( 'Structured learning paths take you from complete beginner to confident AI user. Every tutorial builds on the last.', 'qwe-developer-flavor' ); ?></p>
             </div>
-            <div class="advantage-card">
+            <div class="advantage-card advantage-card--dark" data-reveal>
+                <div class="advantage-card__icon-wrap" aria-hidden="true">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                </div>
                 <div class="advantage-card__number">02</div>
                 <h3><?php esc_html_e( 'Hands-On Practice', 'qwe-developer-flavor' ); ?></h3>
                 <p><?php esc_html_e( 'Every tutorial includes real examples and step-by-step instructions you can follow along. Learn by doing, not just reading.', 'qwe-developer-flavor' ); ?></p>
             </div>
-            <div class="advantage-card">
+            <div class="advantage-card advantage-card--dark" data-reveal>
+                <div class="advantage-card__icon-wrap" aria-hidden="true">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                </div>
                 <div class="advantage-card__number">03</div>
                 <h3><?php esc_html_e( 'Cutting-Edge Content', 'qwe-developer-flavor' ); ?></h3>
                 <p><?php esc_html_e( 'AI evolves fast. Our tutorials cover the latest tools — ChatGPT, Claude, Midjourney, Stable Diffusion, Copilot, and more.', 'qwe-developer-flavor' ); ?></p>
             </div>
-            <div class="advantage-card">
+            <div class="advantage-card advantage-card--dark" data-reveal>
+                <div class="advantage-card__icon-wrap" aria-hidden="true">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 20V10"></path><path d="M12 20V4"></path><path d="M6 20v-6"></path></svg>
+                </div>
                 <div class="advantage-card__number">04</div>
                 <h3><?php esc_html_e( 'Difficulty Levels', 'qwe-developer-flavor' ); ?></h3>
                 <p><?php esc_html_e( 'Every tutorial is marked with a clear difficulty level — Beginner, Intermediate, or Advanced — so you always know what to expect.', 'qwe-developer-flavor' ); ?></p>
@@ -230,13 +245,18 @@ get_header();
 <section class="section">
     <div class="container">
         <div class="cta-banner">
+            <div class="cta-banner__particles" aria-hidden="true">
+                <div class="cta-particle cta-particle--1"></div>
+                <div class="cta-particle cta-particle--2"></div>
+            </div>
             <div class="cta-banner__content">
                 <span class="cta-banner__badge"><?php esc_html_e( 'Free & Open', 'qwe-developer-flavor' ); ?></span>
-                <h2><?php echo esc_html( get_theme_mod( 'qwe_cta_title', __( 'Start Your AI Journey Now', 'qwe-developer-flavor' ) ) ); ?></h2>
-                <p><?php echo esc_html( get_theme_mod( 'qwe_cta_text', __( 'All tutorials are completely free. No registration, no barriers. Pick a topic and start your first lesson right away!', 'qwe-developer-flavor' ) ) ); ?></p>
+                <h2><?php echo esc_html( get_theme_mod( 'qwe_cta_title', __( 'Start Learning AI Today', 'qwe-developer-flavor' ) ) ); ?></h2>
+                <p><?php echo esc_html( get_theme_mod( 'qwe_cta_text', __( 'All our tutorials are completely free. No registration required. Just pick a topic and start learning!', 'qwe-developer-flavor' ) ) ); ?></p>
                 <div class="cta-banner__actions">
-                    <a href="<?php echo esc_url( get_post_type_archive_link( 'tutorial' ) ); ?>" class="btn btn-accent btn-lg">
+                    <a href="<?php echo esc_url( get_post_type_archive_link( 'tutorial' ) ); ?>" class="btn btn-primary btn-lg btn-glow">
                         <?php esc_html_e( 'Browse All Tutorials', 'qwe-developer-flavor' ); ?>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                     </a>
                 </div>
             </div>

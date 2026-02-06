@@ -82,6 +82,11 @@ function qwe_enqueue_assets() {
         'ajaxUrl' => admin_url( 'admin-ajax.php' ),
         'nonce'   => wp_create_nonce( 'qwe_nonce' ),
         'siteUrl' => home_url( '/' ),
+        'i18n'    => array(
+            'copy'       => esc_html__( 'Copy', 'qwe-developer-flavor' ),
+            'copied'     => esc_html__( 'Copied!', 'qwe-developer-flavor' ),
+            'copyToClip' => esc_attr__( 'Copy code to clipboard', 'qwe-developer-flavor' ),
+        ),
     ) );
 }
 add_action( 'wp_enqueue_scripts', 'qwe_enqueue_assets' );
@@ -120,6 +125,7 @@ require_once QWE_THEME_DIR . '/inc/customizer.php';
 require_once QWE_THEME_DIR . '/inc/template-tags.php';
 require_once QWE_THEME_DIR . '/inc/theme-hooks.php';
 require_once QWE_THEME_DIR . '/inc/seo.php';
+require_once QWE_THEME_DIR . '/inc/sample-content.php';
 
 /**
  * Custom excerpt length.

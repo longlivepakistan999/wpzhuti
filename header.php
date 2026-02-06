@@ -22,7 +22,7 @@
                 <h1 class="site-title">
                     <a href="<?php echo esc_url( home_url( '/' ) ); ?>">
                         <span class="site-logo-icon" aria-hidden="true">&#x1F916;</span>
-                        <?php bloginfo( 'name' ); ?>
+                        <?php echo esc_html( get_bloginfo( 'name' ) ); ?>
                     </a>
                 </h1>
             <?php endif; ?>

@@ -12,6 +12,11 @@ if ( have_posts() ) : the_post();
 
 <?php qwe_breadcrumbs(); ?>
 
+<!-- Reading Progress Bar -->
+<div class="reading-progress" id="reading-progress" aria-hidden="true">
+    <div class="reading-progress__bar" id="reading-progress-bar"></div>
+</div>
+
 <article class="single-tutorial" itemscope itemtype="https://schema.org/Article">
 
     <!-- Tutorial Header -->
