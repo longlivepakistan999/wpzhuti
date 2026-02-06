@@ -68,6 +68,15 @@
             <div class="footer-widget">
                 <h4><?php esc_html_e( 'Contact', 'qwe-developer-flavor' ); ?></h4>
                 <ul>
+                    <?php
+                    $about_page = get_page_by_path( 'about' );
+                    if ( $about_page ) : ?>
+                        <li><a href="<?php echo esc_url( get_permalink( $about_page ) ); ?>"><?php esc_html_e( 'About Us', 'qwe-developer-flavor' ); ?></a></li>
+                    <?php endif;
+                    $contact_page = get_page_by_path( 'contact' );
+                    if ( $contact_page ) : ?>
+                        <li><a href="<?php echo esc_url( get_permalink( $contact_page ) ); ?>"><?php esc_html_e( 'Contact', 'qwe-developer-flavor' ); ?></a></li>
+                    <?php endif; ?>
                     <?php if ( get_theme_mod( 'qwe_contact_email' ) ) : ?>
                         <li><a href="mailto:<?php echo esc_attr( get_theme_mod( 'qwe_contact_email' ) ); ?>"><?php echo esc_html( get_theme_mod( 'qwe_contact_email' ) ); ?></a></li>
                     <?php endif; ?>
