@@ -35,15 +35,74 @@ if ( isset( $_GET['action'] ) ) {
     $action = $_GET['action'];
 
     if ( 'run' === $action ) {
-        // Redirect to cron.php and capture result.
-        $cron_url = dirname( $_SERVER['SCRIPT_NAME'] ) . '/cron.php?key=' . urlencode( QWE_CRON_SECRET );
-        $result = @file_get_contents( 'http' . ( isset( $_SERVER['HTTPS'] ) ? 's' : '' ) . '://' . $_SERVER['HTTP_HOST'] . $cron_url );
-        $data = json_decode( $result, true );
-        if ( $data && isset( $data['published'] ) ) {
-            $message = "Run complete: {$data['published']}/{$data['planned']} articles published.";
-        } else {
-            $message = 'Run triggered. Check log for details.';
+        // Run generation inline (avoids HTTP timeout issues).
+        require_once __DIR__ . '/trending.php';
+        require_once __DIR__ . '/generator.php';
+        require_once __DIR__ . '/publisher.php';
+
+        // Set longer execution time for article generation.
+        @set_time_limit( 300 );
+
+        // Step 1: Fetch trending.
+        $trending_added = 0;
+        if ( QWE_TRENDING_ENABLED ) {
+            $trending_added = QWE_Trending::fetch_all();
         }
+
+        // Step 2: Calculate ratio.
+        $total_articles = QWE_ARTICLES_PER_RUN;
+        $trending_count = 0;
+        $longtail_count = $total_articles;
+        if ( QWE_TRENDING_ENABLED ) {
+            $trending_count = max( 1, round( $total_articles * QWE_TRENDING_RATIO / 100 ) );
+            $longtail_count = $total_articles - $trending_count;
+        }
+
+        // Step 3: Generate articles.
+        $published = 0;
+        for ( $i = 0; $i < $longtail_count; $i++ ) {
+            $kw = QWE_DB::get_next_keyword();
+            if ( ! $kw ) break;
+            $article = QWE_Generator::generate( $kw['keyword'], 'longtail', $kw['category'], $kw['difficulty'] );
+            if ( $article ) {
+                $post_id = QWE_Publisher::publish( $article );
+                if ( $post_id ) {
+                    QWE_DB::mark_keyword_used( $kw['id'], $post_id );
+                    QWE_DB::log_article( $post_id, $article['title'], $kw['keyword'], 'longtail', $article['category'], $article['difficulty'], $kw['id'] );
+                    $published++;
+                }
+            }
+            if ( $i < $longtail_count - 1 ) sleep( 3 );
+        }
+        for ( $i = 0; $i < $trending_count; $i++ ) {
+            $tr = QWE_DB::get_next_trending();
+            if ( ! $tr ) {
+                $kw = QWE_DB::get_next_keyword();
+                if ( ! $kw ) break;
+                $article = QWE_Generator::generate( $kw['keyword'], 'longtail', $kw['category'], $kw['difficulty'] );
+                if ( $article ) {
+                    $post_id = QWE_Publisher::publish( $article );
+                    if ( $post_id ) {
+                        QWE_DB::mark_keyword_used( $kw['id'], $post_id );
+                        QWE_DB::log_article( $post_id, $article['title'], $kw['keyword'], 'longtail', $article['category'], $article['difficulty'], $kw['id'] );
+                        $published++;
+                    }
+                }
+            } else {
+                $article = QWE_Generator::generate( $tr['title'], 'trending', $tr['category'], 'beginner' );
+                if ( $article ) {
+                    $post_id = QWE_Publisher::publish( $article );
+                    if ( $post_id ) {
+                        QWE_DB::mark_trending_used( $tr['id'], $post_id, $article['title'] );
+                        QWE_DB::log_article( $post_id, $article['title'], $tr['title'], 'trending', $article['category'], $article['difficulty'], $tr['id'] );
+                        $published++;
+                    }
+                }
+            }
+            if ( $i < $trending_count - 1 ) sleep( 3 );
+        }
+
+        $message = "Run complete: {$published}/{$total_articles} articles published. Trending fetched: {$trending_added} topics.";
     }
 
     if ( 'fetch' === $action ) {

@@ -16,6 +16,12 @@
  * @package QWE_Auto_Publish
  */
 
+// Load dependencies first (config.php defines constants like QWE_CRON_SECRET).
+require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/trending.php';
+require_once __DIR__ . '/generator.php';
+require_once __DIR__ . '/publisher.php';
+
 // Prevent direct web access without key.
 $is_cli = ( 'cli' === php_sapi_name() );
 
@@ -25,11 +31,6 @@ if ( ! $is_cli ) {
         die( 'Forbidden' );
     }
 }
-
-require_once __DIR__ . '/db.php';
-require_once __DIR__ . '/trending.php';
-require_once __DIR__ . '/generator.php';
-require_once __DIR__ . '/publisher.php';
 
 // Ensure tables exist.
 QWE_DB::init_tables();
