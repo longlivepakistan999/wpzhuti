@@ -231,9 +231,9 @@ get_header();
     <div class="container">
         <div class="cta-banner">
             <div class="cta-banner__content">
-                <span class="cta-banner__badge"><?php esc_html_e( 'Open Enrollment', 'qwe-developer-flavor' ); ?></span>
-                <h2><?php echo esc_html( get_theme_mod( 'qwe_cta_title', __( 'Start Your AI Education Today', 'qwe-developer-flavor' ) ) ); ?></h2>
-                <p><?php echo esc_html( get_theme_mod( 'qwe_cta_text', __( 'All courses are completely free. No registration needed. Pick a department and start your first lesson now!', 'qwe-developer-flavor' ) ) ); ?></p>
+                <span class="cta-banner__badge"><?php esc_html_e( 'Free & Open', 'qwe-developer-flavor' ); ?></span>
+                <h2><?php echo esc_html( get_theme_mod( 'qwe_cta_title', __( 'Start Your AI Journey Now', 'qwe-developer-flavor' ) ) ); ?></h2>
+                <p><?php echo esc_html( get_theme_mod( 'qwe_cta_text', __( 'All tutorials are completely free. No registration, no barriers. Pick a topic and start your first lesson right away!', 'qwe-developer-flavor' ) ) ); ?></p>
                 <div class="cta-banner__actions">
                     <a href="<?php echo esc_url( get_post_type_archive_link( 'tutorial' ) ); ?>" class="btn btn-accent btn-lg">
                         <?php esc_html_e( 'Browse All Tutorials', 'qwe-developer-flavor' ); ?>
