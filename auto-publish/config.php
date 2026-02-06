@@ -85,7 +85,7 @@ define( 'QWE_DB_PATH', dirname( __FILE__ ) . '/data/auto_publish.db' );
 // Usage: /auto-publish/cron.php?key=YOUR_SECRET_KEY
 // ============================================================
 
-define( 'QWE_CRON_SECRET', 'CHANGE_THIS_TO_A_RANDOM_STRING' );
+define( 'QWE_CRON_SECRET', 'qwe2024abc' );
 
 // ============================================================
 // Category mapping: tutorial_category slug => display name
