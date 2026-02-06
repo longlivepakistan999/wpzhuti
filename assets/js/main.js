@@ -32,7 +32,7 @@
         var parentItems = nav.querySelectorAll('.menu-item-has-children > a');
         parentItems.forEach(function (link) {
             link.addEventListener('click', function (e) {
-                if (window.innerWidth <= 960) {
+                if (window.innerWidth <= 768) {
                     e.preventDefault();
                     var li = link.parentElement;
                     li.classList.toggle('is-open');

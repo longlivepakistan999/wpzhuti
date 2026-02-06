@@ -37,7 +37,7 @@ get_header();
                 if ( $popular->have_posts() ) : ?>
                     <ul>
                         <?php while ( $popular->have_posts() ) : $popular->the_post(); ?>
-                            <li><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></li>
+                            <li><a href="<?php echo esc_url( get_permalink() ); ?>"><?php echo esc_html( get_the_title() ); ?></a></li>
                         <?php endwhile; ?>
                     </ul>
                 <?php endif;
