@@ -50,15 +50,14 @@ class QWE_Generator {
             return false;
         }
 
-        self::log( "Pass 1 complete for: {$keyword}" );
+        self::log( "Pass 1 draft generated for: {$keyword}" );
 
-        // Pass 2: E-E-A-T review, burstiness/perplexity check, and revision.
-        $revised = self::review_and_revise( $article );
-        if ( $revised ) {
-            self::log( "Pass 2 complete — using revised article for: {$keyword}" );
-            $article = $revised;
+        // Pass 2: E-E-A-T evaluation — if all scores >= 70, use original; otherwise revise.
+        $final = self::review_and_revise( $article );
+        if ( $final ) {
+            $article = $final;
         } else {
-            self::log( "Pass 2 failed — using Pass 1 draft for: {$keyword}" );
+            self::log( "Pass 2 error — falling back to Pass 1 draft for: {$keyword}" );
         }
 
         $article['keyword'] = $keyword;
@@ -362,44 +361,43 @@ PROMPT;
      */
     private static function build_review_system_prompt() {
         $prompt = <<<'PROMPT'
-You are a senior content quality reviewer for QWE AI Academy (qwe.edu.pl). Your job is to audit a draft tutorial article and revise it to meet strict quality standards.
+You are a senior content quality reviewer for QWE AI Academy (qwe.edu.pl). Your job is to audit a draft tutorial article and decide whether it passes quality standards or needs revision.
 
 === YOUR TASK ===
 
 You will receive a draft article in JSON format. You must:
 
-1. AUDIT the article against Google E-E-A-T (all 4 pillars)
-2. MEASURE burstiness and perplexity
-3. REVISE the article to fix ALL deficiencies
-4. OUTPUT the final revised article
+1. EVALUATE the article — score each E-E-A-T pillar, burstiness, and perplexity
+2. DECIDE: If ALL 6 scores are >= 70 AND no fabricated data AND no banned words → the article PASSES (no revision needed)
+3. If ANY score is < 70 OR fabricated data found OR banned words found → REVISE the article to fix the deficiencies
 
-=== E-E-A-T AUDIT CHECKLIST ===
+=== E-E-A-T EVALUATION CHECKLIST ===
 
-**E - Experience**: Does the article contain:
+**E - Experience (score 0-100)**: Does the article contain:
 - 2+ genuine first-person testing moments with concrete details?
 - 1+ specific mistake/gotcha the author encountered?
 - 1+ before/after or comparison from personal use (qualitative OK)?
 - Specific verifiable UI details (menu paths, button names, version numbers)?
-- NO fabricated numbers? (If a stat looks invented — e.g., "47% improvement", "saved 2.3 hours" — replace it with qualitative language like "noticeably faster", "saved a good chunk of time")
+- NO fabricated numbers? (If a stat looks invented — e.g., "47% improvement", "saved 2.3 hours" — it MUST be replaced with qualitative language like "noticeably faster", "saved a good chunk of time")
 
-**E - Expertise**: Does the article:
+**E - Expertise (score 0-100)**: Does the article:
 - Explain WHY, not just HOW?
 - Use correct technical terminology naturally?
 - Include 1+ insider insight (hidden settings, edge cases, undocumented behaviors)?
 - Only cite verifiable facts (official pricing, published specs, documented limits)?
 
-**A - Authoritativeness**: Does the article:
+**A - Authoritativeness (score 0-100)**: Does the article:
 - Describe testing approach honestly (no fake "I ran 500 tests" claims)?
 - Reference official documentation or community findings?
 - Include 0-3 inline external links to real, stable URLs?
 
-**T - Trustworthiness**: Does the article:
+**T - Trustworthiness (score 0-100)**: Does the article:
 - Distinguish facts vs opinions clearly?
 - Acknowledge limitations and drawbacks?
 - NEVER contain fabricated numbers, dates, benchmarks, or statistics?
-- Any number in the article MUST be a publicly verifiable fact. Replace all suspicious/unverifiable numbers with qualitative descriptions.
+- Any number in the article MUST be a publicly verifiable fact. All suspicious/unverifiable numbers must be replaced with qualitative descriptions.
 
-=== BURSTINESS AUDIT (Target: >70%) ===
+=== BURSTINESS EVALUATION (Target: >= 70) ===
 
 Burstiness measures sentence length variation. AI text is low-burstiness (uniform sentence lengths). Human text is high-burstiness (chaotic, varied).
 
@@ -407,15 +405,15 @@ How to score:
 - Extract all sentence lengths (word counts) from the article
 - Calculate the coefficient of variation (CV = standard deviation / mean)
 - Convert to percentage: burstiness_score = min(CV * 100, 100)
-- Target: >70%
+- Target: >= 70
 
-If burstiness is below 70%, revise by:
+If revision needed, fix by:
 - Breaking long sentences into short punchy ones in some places
 - Combining short sentences into longer compound ones in others
 - Adding 1-sentence paragraphs, fragments, and varied rhythm
 - Making sure no 3+ consecutive sentences have similar length
 
-=== PERPLEXITY AUDIT (Target: >70%) ===
+=== PERPLEXITY EVALUATION (Target: >= 70) ===
 
 Perplexity measures word unpredictability. AI text is low-perplexity (predictable word choices). Human text is high-perplexity (unexpected but natural words).
 
@@ -424,14 +422,14 @@ How to score:
 - Check for human signals: contractions, idioms, unexpected word pairings, casual expressions, self-corrections
 - Score 0-100 based on how unpredictable the writing feels
 
-If perplexity is below 70%, revise by:
+If revision needed, fix by:
 - Replacing obvious word choices with natural alternatives (use → reach for, shows → turns out)
 - Adding more contractions (it's, won't, didn't, can't, I've, you'll)
 - Inserting casual micro-expressions (honestly, look, here's the thing, fair warning)
 - Adding 1-2 self-corrections or uncertainty moments
 - Breaking formulaic paragraph structures
 
-=== BANNED PATTERNS (Remove if found) ===
+=== BANNED PATTERNS (Fail if found) ===
 
 Words: harness, leverage, delve, tapestry, landscape (metaphor), embark, empower, unlock, streamline, revolutionize, cutting-edge, robust, seamless, comprehensive, utilize, facilitate, optimize, innovative, transformative, paradigm, synergy, holistic, myriad
 
@@ -441,34 +439,48 @@ Transitions: Moreover, Furthermore, Additionally, Consequently, Thus, Hence, Non
 
 === OUTPUT FORMAT ===
 
-Respond with valid JSON only. No markdown fences, no extra text:
+Respond with valid JSON only. No markdown fences, no extra text.
+
+IF ALL 6 scores >= 70 AND no fabricated data AND no banned words (article PASSES):
 {
   "review": {
+    "passed": true,
     "experience_score": 0-100,
-    "experience_notes": "what was fixed",
     "expertise_score": 0-100,
-    "expertise_notes": "what was fixed",
     "authority_score": 0-100,
-    "authority_notes": "what was fixed",
     "trust_score": 0-100,
-    "trust_notes": "what was fixed",
     "burstiness_score": 0-100,
-    "burstiness_notes": "what was fixed",
     "perplexity_score": 0-100,
-    "perplexity_notes": "what was fixed",
-    "fabricated_data_removed": ["list of fabricated items replaced"],
+    "summary": "Brief explanation of why it passed"
+  }
+}
+
+IF ANY score < 70 OR fabricated data found OR banned words found (article NEEDS REVISION):
+{
+  "review": {
+    "passed": false,
+    "experience_score": 0-100,
+    "expertise_score": 0-100,
+    "authority_score": 0-100,
+    "trust_score": 0-100,
+    "burstiness_score": 0-100,
+    "perplexity_score": 0-100,
+    "issues_found": ["list of specific issues"],
+    "fabricated_data_removed": ["list of fabricated items replaced with qualitative language"],
     "banned_words_removed": ["list of banned words/phrases replaced"]
   },
   "article": {
-    "title": "final title",
-    "slug": "final-slug",
-    "excerpt": "final excerpt",
+    "title": "revised title",
+    "slug": "revised-slug",
+    "excerpt": "revised excerpt",
     "category": "category-slug",
     "difficulty": "beginner|intermediate|advanced",
-    "content": "final revised HTML content",
+    "content": "revised HTML content with all issues fixed",
     "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"]
   }
 }
+
+IMPORTANT: When "passed" is true, do NOT include the "article" key — it saves tokens and preserves the original voice. Only include "article" when revision was needed.
 
 === LANGUAGE ===
 
@@ -488,36 +500,50 @@ PROMPT;
         $draft_json = json_encode( $article, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT );
 
         $prompt = <<<'PROMPT'
-Review and revise this draft tutorial article. Follow ALL instructions from the system prompt.
+Evaluate this draft tutorial article. Follow ALL instructions from the system prompt.
 
 DRAFT ARTICLE:
 {{DRAFT_JSON}}
 
-REQUIREMENTS:
-1. Score each E-E-A-T pillar (0-100). Fix anything below 70.
-2. Score burstiness (sentence variation). Must be >70%. If not, rewrite sentences to vary length aggressively.
-3. Score perplexity (word unpredictability). Must be >70%. If not, replace predictable words, add contractions, add casual expressions.
-4. Remove ALL fabricated numbers/stats — replace with qualitative language.
-5. Remove ALL banned words/phrases — replace with natural alternatives.
-6. Keep the same topic, structure, and teaching content — only improve quality.
-7. The revised article must be 1500-2500 words.
-8. Output valid JSON only.
+STEP 1 — EVALUATE:
+- Score each E-E-A-T pillar (0-100)
+- Score burstiness (sentence length variation, 0-100)
+- Score perplexity (word unpredictability, 0-100)
+- Check for fabricated numbers/stats (any number that is not a publicly verifiable fact)
+- Check for banned words/phrases from the system prompt list
+
+STEP 2 — DECIDE:
+- If ALL 6 scores >= 70 AND no fabricated data AND no banned words → set "passed": true, return review scores only (no article)
+- If ANY score < 70 OR fabricated data found OR banned words found → set "passed": false, revise the article to fix ALL issues, return both review and revised article
+
+REVISION RULES (only if passed = false):
+- Fix ONLY the failing areas — preserve everything that already works well
+- Keep the same topic, structure, and teaching content
+- Replace fabricated numbers with qualitative language
+- Replace banned words with natural alternatives
+- The revised article must be 1500-2500 words
+- Output valid JSON only
 PROMPT;
 
         return str_replace( '{{DRAFT_JSON}}', $draft_json, $prompt );
     }
 
     /**
-     * Run Pass 2: Review and revise the draft article.
+     * Run Pass 2: Evaluate the draft article and revise if needed.
+     *
+     * Returns:
+     *   - The original draft (unchanged) if all scores >= 70 and no issues found
+     *   - A revised article if any score < 70 or issues were found
+     *   - false if the API call or parsing fails (caller falls back to Pass 1 draft)
      *
      * @param array $draft_article Article data from Pass 1.
-     * @return array|false Revised article data or false on failure.
+     * @return array|false Article data (original or revised) or false on failure.
      */
     private static function review_and_revise( $draft_article ) {
         $system_prompt = self::build_review_system_prompt();
         $user_prompt = self::build_review_user_prompt( $draft_article );
 
-        self::log( 'Pass 2: Sending draft for E-E-A-T review and revision' );
+        self::log( 'Pass 2: Sending draft for E-E-A-T evaluation' );
 
         $response = self::call_claude_api( $system_prompt, $user_prompt );
 
@@ -539,30 +565,52 @@ PROMPT;
             return false;
         }
 
-        // Log the review scores.
-        if ( isset( $result['review'] ) ) {
-            $r = $result['review'];
-            self::log( sprintf(
-                'Pass 2 scores — Experience: %s, Expertise: %s, Authority: %s, Trust: %s, Burstiness: %s, Perplexity: %s',
-                $r['experience_score'] ?? '?',
-                $r['expertise_score'] ?? '?',
-                $r['authority_score'] ?? '?',
-                $r['trust_score'] ?? '?',
-                $r['burstiness_score'] ?? '?',
-                $r['perplexity_score'] ?? '?'
-            ) );
+        // Review data must exist.
+        if ( ! isset( $result['review'] ) ) {
+            self::log( 'Pass 2 response missing "review" key' );
+            return false;
+        }
 
-            if ( ! empty( $r['fabricated_data_removed'] ) ) {
-                self::log( 'Fabricated data removed: ' . implode( ', ', $r['fabricated_data_removed'] ) );
+        $r = $result['review'];
+
+        // Log the review scores.
+        self::log( sprintf(
+            'Pass 2 scores — Experience: %s, Expertise: %s, Authority: %s, Trust: %s, Burstiness: %s, Perplexity: %s',
+            $r['experience_score'] ?? '?',
+            $r['expertise_score'] ?? '?',
+            $r['authority_score'] ?? '?',
+            $r['trust_score'] ?? '?',
+            $r['burstiness_score'] ?? '?',
+            $r['perplexity_score'] ?? '?'
+        ) );
+
+        $passed = ! empty( $r['passed'] );
+
+        // Case 1: Article passed all checks — use original draft as-is.
+        if ( $passed ) {
+            self::log( 'Pass 2 result: PASSED — all scores >= 70, no issues found, using original article' );
+            if ( ! empty( $r['summary'] ) ) {
+                self::log( 'Pass 2 summary: ' . $r['summary'] );
             }
-            if ( ! empty( $r['banned_words_removed'] ) ) {
-                self::log( 'Banned words removed: ' . implode( ', ', $r['banned_words_removed'] ) );
-            }
+            return $draft_article;
+        }
+
+        // Case 2: Article failed — needs revision.
+        self::log( 'Pass 2 result: FAILED — revision needed' );
+
+        if ( ! empty( $r['issues_found'] ) ) {
+            self::log( 'Issues found: ' . implode( '; ', $r['issues_found'] ) );
+        }
+        if ( ! empty( $r['fabricated_data_removed'] ) ) {
+            self::log( 'Fabricated data removed: ' . implode( ', ', $r['fabricated_data_removed'] ) );
+        }
+        if ( ! empty( $r['banned_words_removed'] ) ) {
+            self::log( 'Banned words removed: ' . implode( ', ', $r['banned_words_removed'] ) );
         }
 
         // Extract the revised article.
         if ( ! isset( $result['article'] ) ) {
-            self::log( 'Pass 2 response missing "article" key' );
+            self::log( 'Pass 2 failed but no revised article provided — using Pass 1 draft' );
             return false;
         }
 
@@ -572,7 +620,7 @@ PROMPT;
         $required = array( 'title', 'slug', 'excerpt', 'category', 'difficulty', 'content' );
         foreach ( $required as $field ) {
             if ( empty( $revised[ $field ] ) ) {
-                self::log( "Pass 2 missing required field: {$field}" );
+                self::log( "Pass 2 revised article missing required field: {$field} — using Pass 1 draft" );
                 return false;
             }
         }
@@ -581,6 +629,7 @@ PROMPT;
             $revised['tags'] = $draft_article['tags'] ?? array();
         }
 
+        self::log( 'Pass 2: Revision complete — using revised article' );
         return $revised;
     }
 
