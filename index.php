@@ -24,10 +24,10 @@ get_header();
             </div>
 
             <?php the_posts_pagination( array(
-                'mid_size'  => 2,
-                'prev_text' => '&larr;',
-                'next_text' => '&rarr;',
-                'class'     => 'pagination',
+                'mid_size'           => 2,
+                'prev_text'          => '&larr; ' . esc_html__( 'Previous', 'qwe-developer-flavor' ),
+                'next_text'          => esc_html__( 'Next', 'qwe-developer-flavor' ) . ' &rarr;',
+                'screen_reader_text' => esc_html__( 'Posts navigation', 'qwe-developer-flavor' ),
             ) ); ?>
 
         <?php else : ?>

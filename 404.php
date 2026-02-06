@@ -26,8 +26,12 @@ get_header();
                 $popular = new WP_Query( array(
                     'post_type'      => 'tutorial',
                     'posts_per_page' => 5,
-                    'meta_key'       => '_qwe_featured',
-                    'meta_value'     => '1',
+                    'meta_query'     => array(
+                        array(
+                            'key'   => '_qwe_featured',
+                            'value' => '1',
+                        ),
+                    ),
                 ) );
 
                 if ( $popular->have_posts() ) : ?>

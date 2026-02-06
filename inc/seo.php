@@ -142,6 +142,8 @@ function qwe_canonical_url() {
         echo '<link rel="canonical" href="' . esc_url( get_permalink() ) . '">' . "\n";
     } elseif ( is_front_page() ) {
         echo '<link rel="canonical" href="' . esc_url( home_url( '/' ) ) . '">' . "\n";
+    } elseif ( is_post_type_archive( 'tutorial' ) || is_tax( 'tutorial_category' ) ) {
+        echo '<link rel="canonical" href="' . esc_url( get_pagenum_link() ) . '">' . "\n";
     }
 }
 add_action( 'wp_head', 'qwe_canonical_url', 1 );

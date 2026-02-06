@@ -26,7 +26,7 @@ wpzhuti/
 ├── header.php                         # Site header with nav + search
 ├── footer.php                         # Site footer with widgets + links
 ├── index.php                          # Main fallback template
-├── front-page.php                     # Homepage (hero + categories + featured + CTA)
+├── front-page.php                     # Homepage (university-style: hero + trust bar + departments + featured + advantages + latest + CTA)
 ├── single-tutorial.php                # Single tutorial page (TOC + content)
 ├── single.php                         # Single blog post page
 ├── archive-tutorial.php               # Tutorial listing with category filters
