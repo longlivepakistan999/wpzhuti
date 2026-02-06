@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QWE AI Academy — Learn AI for Free</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body class="front-page">
+<a class="screen-reader-text" href="#main-content">Skip to content</a>
+
+<header class="site-header" role="banner">
+    <div class="container">
+        <div class="site-branding">
+            <h1 class="site-title">
+                <a href="index.html">
+                    <span class="site-logo-icon" aria-hidden="true">&#x1F916;</span>
+                    QWE AI Academy
+                </a>
+            </h1>
+        </div>
+
+        <button class="menu-toggle" aria-controls="primary-menu" aria-expanded="false" aria-label="Toggle menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+
+        <nav class="main-navigation" role="navigation" aria-label="Primary Menu">
+            <ul id="primary-menu">
+                <li class="current-menu-item"><a href="index.html">Home</a></li>
+                <li><a href="archive-tutorial.html">Tutorials</a></li>
+                <li><a href="single-tutorial.html">Sample Tutorial</a></li>
+                <li><a href="search.html">Search</a></li>
+                <li><a href="404.html">404 Page</a></li>
+            </ul>
+        </nav>
+
+        <div class="header-actions">
+            <form class="header-search" role="search" method="get" action="#">
+                <label class="screen-reader-text" for="header-search-input">Search</label>
+                <input type="search" id="header-search-input" class="header-search__input" placeholder="Search tutorials..." name="s">
+            </form>
+        </div>
+    </div>
+</header>
+
+<main id="main-content" class="site-content">
+
+<!-- 1. HERO -->
+<section class="hero-section">
+    <div class="hero-particles" aria-hidden="true">
+        <div class="hero-particle hero-particle--1"></div>
+        <div class="hero-particle hero-particle--2"></div>
+        <div class="hero-particle hero-particle--3"></div>
+        <div class="hero-particle hero-particle--4"></div>
+        <div class="hero-particle hero-particle--5"></div>
+    </div>
+
+    <div class="container">
+        <div class="hero-layout">
+            <div class="hero-content">
+                <span class="hero-content__badge">
+                    <span class="hero-content__badge-dot" aria-hidden="true"></span>
+                    QWE AI Academy
+                </span>
+                <h1>Learn AI for Free — From Zero to Pro</h1>
+                <p class="hero-content__desc">Master ChatGPT, AI art, AI coding, and more with our step-by-step tutorials. Completely free, no registration required.</p>
+                <div class="hero-actions">
+                    <a href="archive-tutorial.html" class="btn btn-primary btn-lg btn-glow">
+                        Start Learning
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                    </a>
+                    <a href="#learning-paths" class="btn btn-lg hero-btn-outline">
+                        Browse Departments
+                    </a>
+                </div>
+
+                <div class="hero-trust">
+                    <div class="hero-trust__item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        100% Free
+                    </div>
+                    <div class="hero-trust__item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        No Registration
+                    </div>
+                    <div class="hero-trust__item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        Always Updated
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-visual">
+                <div class="hero-stats-card">
+                    <div class="hero-stats-card__glow" aria-hidden="true"></div>
+                    <div class="hero-stat">
+                        <span class="hero-stat__number">200+</span>
+                        <span class="hero-stat__label">Free Tutorials</span>
+                    </div>
+                    <div class="hero-stat__divider" aria-hidden="true"></div>
+                    <div class="hero-stat">
+                        <span class="hero-stat__number">7</span>
+                        <span class="hero-stat__label">AI Departments</span>
+                    </div>
+                    <div class="hero-stat__divider" aria-hidden="true"></div>
+                    <div class="hero-stat">
+                        <span class="hero-stat__number">50K+</span>
+                        <span class="hero-stat__label">Monthly Readers</span>
+                    </div>
+                </div>
+
+                <div class="hero-float-card hero-float-card--1" aria-hidden="true">
+                    <span class="hero-float-card__icon">&#x1F916;</span>
+                    <span>ChatGPT</span>
+                </div>
+                <div class="hero-float-card hero-float-card--2" aria-hidden="true">
+                    <span class="hero-float-card__icon">&#x1F3A8;</span>
+                    <span>AI Art</span>
+                </div>
+                <div class="hero-float-card hero-float-card--3" aria-hidden="true">
+                    <span class="hero-float-card__icon">&#x1F4BB;</span>
+                    <span>AI Coding</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 2. HOW IT WORKS -->
+<section class="section how-it-works">
+    <div class="container">
+        <div class="section__header">
+            <span class="section__badge">How It Works</span>
+            <h2>Start Learning in 3 Simple Steps</h2>
+        </div>
+
+        <div class="steps-grid">
+            <div class="step-card is-revealed">
+                <div class="step-card__number">1</div>
+                <div class="step-card__icon" aria-hidden="true">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </div>
+                <h3>Choose a Topic</h3>
+                <p>Browse our AI departments and pick the topic that interests you most.</p>
+            </div>
+            <div class="step-card__connector" aria-hidden="true"></div>
+            <div class="step-card is-revealed">
+                <div class="step-card__number">2</div>
+                <div class="step-card__icon" aria-hidden="true">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                </div>
+                <h3>Follow the Tutorial</h3>
+                <p>Read step-by-step instructions with real examples. No prior experience needed.</p>
+            </div>
+            <div class="step-card__connector" aria-hidden="true"></div>
+            <div class="step-card is-revealed">
+                <div class="step-card__number">3</div>
+                <div class="step-card__icon" aria-hidden="true">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                </div>
+                <h3>Master AI Skills</h3>
+                <p>Apply what you learned and level up. Move from beginner to advanced at your own pace.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 3. DEPARTMENTS -->
+<section class="section section--alt" id="learning-paths">
+    <div class="container">
+        <div class="section__header">
+            <span class="section__badge">Departments</span>
+            <h2>Explore Our AI Departments</h2>
+            <p>Choose your field of study. Each department offers structured tutorials from beginner to advanced.</p>
+        </div>
+
+        <div class="dept-grid">
+            <a href="archive-tutorial.html" class="dept-card is-revealed">
+                <div class="dept-card__icon">&#x1F4AC;</div>
+                <div class="dept-card__body">
+                    <h3 class="dept-card__title">ChatGPT &amp; LLMs</h3>
+                    <p class="dept-card__desc">Master conversational AI, prompt engineering, and large language models.</p>
+                    <span class="dept-card__count">24 tutorials</span>
+                </div>
+                <span class="dept-card__arrow" aria-hidden="true">&rarr;</span>
+            </a>
+            <a href="archive-tutorial.html" class="dept-card is-revealed">
+                <div class="dept-card__icon">&#x1F3A8;</div>
+                <div class="dept-card__body">
+                    <h3 class="dept-card__title">AI Art &amp; Design</h3>
+                    <p class="dept-card__desc">Create stunning images with Midjourney, DALL-E, and Stable Diffusion.</p>
+                    <span class="dept-card__count">18 tutorials</span>
+                </div>
+                <span class="dept-card__arrow" aria-hidden="true">&rarr;</span>
+            </a>
+            <a href="archive-tutorial.html" class="dept-card is-revealed">
+                <div class="dept-card__icon">&#x1F4BB;</div>
+                <div class="dept-card__body">
+                    <h3 class="dept-card__title">AI Coding</h3>
+                    <p class="dept-card__desc">Write better code with GitHub Copilot, Cursor, and AI pair programming.</p>
+                    <span class="dept-card__count">15 tutorials</span>
+                </div>
+                <span class="dept-card__arrow" aria-hidden="true">&rarr;</span>
+            </a>
+            <a href="archive-tutorial.html" class="dept-card is-revealed">
+                <div class="dept-card__icon">&#x1F4CA;</div>
+                <div class="dept-card__body">
+                    <h3 class="dept-card__title">AI Data Analysis</h3>
+                    <p class="dept-card__desc">Analyze data, build charts, and generate insights using AI tools.</p>
+                    <span class="dept-card__count">12 tutorials</span>
+                </div>
+                <span class="dept-card__arrow" aria-hidden="true">&rarr;</span>
+            </a>
+            <a href="archive-tutorial.html" class="dept-card is-revealed">
+                <div class="dept-card__icon">&#x1F4DD;</div>
+                <div class="dept-card__body">
+                    <h3 class="dept-card__title">AI Writing</h3>
+                    <p class="dept-card__desc">Craft articles, emails, and marketing copy with AI writing assistants.</p>
+                    <span class="dept-card__count">20 tutorials</span>
+                </div>
+                <span class="dept-card__arrow" aria-hidden="true">&rarr;</span>
+            </a>
+            <a href="archive-tutorial.html" class="dept-card is-revealed">
+                <div class="dept-card__icon">&#x1F3AC;</div>
+                <div class="dept-card__body">
+                    <h3 class="dept-card__title">AI Video &amp; Audio</h3>
+                    <p class="dept-card__desc">Generate videos, music, and voiceovers using cutting-edge AI tools.</p>
+                    <span class="dept-card__count">10 tutorials</span>
+                </div>
+                <span class="dept-card__arrow" aria-hidden="true">&rarr;</span>
+            </a>
+            <a href="archive-tutorial.html" class="dept-card is-revealed">
+                <div class="dept-card__icon">&#x1F4BC;</div>
+                <div class="dept-card__body">
+                    <h3 class="dept-card__title">AI for Business</h3>
+                    <p class="dept-card__desc">Boost productivity and automate workflows with AI business tools.</p>
+                    <span class="dept-card__count">14 tutorials</span>
+                </div>
+                <span class="dept-card__arrow" aria-hidden="true">&rarr;</span>
+            </a>
+            <a href="archive-tutorial.html" class="dept-card is-revealed">
+                <div class="dept-card__icon">&#x1F9E0;</div>
+                <div class="dept-card__body">
+                    <h3 class="dept-card__title">AI Fundamentals</h3>
+                    <p class="dept-card__desc">Understand how AI works, key concepts, and the technology behind it.</p>
+                    <span class="dept-card__count">8 tutorials</span>
+                </div>
+                <span class="dept-card__arrow" aria-hidden="true">&rarr;</span>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- 4. FEATURED COURSES -->
+<section class="section">
+    <div class="container">
+        <div class="section__header">
+            <span class="section__badge">Featured Courses</span>
+            <h2>Most Popular Tutorials</h2>
+            <p>Hand-picked tutorials our readers love. Start your AI journey here.</p>
+        </div>
+
+        <div class="courses-grid">
+            <!-- Card 1 -->
+            <article class="course-card is-revealed">
+                <div class="course-card__thumbnail">
+                    <a href="single-tutorial.html" aria-hidden="true" tabindex="-1">
+                        <img src="https://placehold.co/640x360/6366F1/ffffff?text=ChatGPT+Beginner+Guide" alt="ChatGPT Beginner Guide" width="640" height="360">
+                    </a>
+                    <span class="course-card__badge difficulty--beginner">Beginner</span>
+                </div>
+                <div class="course-card__body">
+                    <div class="course-card__category"><a href="archive-tutorial.html">ChatGPT &amp; LLMs</a></div>
+                    <h3 class="course-card__title"><a href="single-tutorial.html">ChatGPT for Beginners: Your Complete Getting Started Guide</a></h3>
+                    <p class="course-card__excerpt">Learn what ChatGPT is, how to create an account, and master your first conversations with AI.</p>
+                    <div class="course-card__meta">
+                        <span class="course-card__reading-time">8 min read</span>
+                        <span class="course-card__date"><time datetime="2026-01-15">January 15, 2026</time></span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Card 2 -->
+            <article class="course-card is-revealed">
+                <div class="course-card__thumbnail">
+                    <a href="single-tutorial.html" aria-hidden="true" tabindex="-1">
+                        <img src="https://placehold.co/640x360/8B5CF6/ffffff?text=Midjourney+AI+Art" alt="Midjourney AI Art" width="640" height="360">
+                    </a>
+                    <span class="course-card__badge difficulty--beginner">Beginner</span>
+                </div>
+                <div class="course-card__body">
+                    <div class="course-card__category"><a href="archive-tutorial.html">AI Art &amp; Design</a></div>
+                    <h3 class="course-card__title"><a href="single-tutorial.html">Create Stunning AI Art with Midjourney: A Step-by-Step Guide</a></h3>
+                    <p class="course-card__excerpt">Discover how to use Midjourney to generate beautiful images from text prompts.</p>
+                    <div class="course-card__meta">
+                        <span class="course-card__reading-time">12 min read</span>
+                        <span class="course-card__date"><time datetime="2026-01-20">January 20, 2026</time></span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Card 3 -->
+            <article class="course-card is-revealed">
+                <div class="course-card__thumbnail">
+                    <a href="single-tutorial.html" aria-hidden="true" tabindex="-1">
+                        <img src="https://placehold.co/640x360/06B6D4/ffffff?text=GitHub+Copilot" alt="GitHub Copilot" width="640" height="360">
+                    </a>
+                    <span class="course-card__badge difficulty--intermediate">Intermediate</span>
+                </div>
+                <div class="course-card__body">
+                    <div class="course-card__category"><a href="archive-tutorial.html">AI Coding</a></div>
+                    <h3 class="course-card__title"><a href="single-tutorial.html">GitHub Copilot: Write Code 10x Faster with AI</a></h3>
+                    <p class="course-card__excerpt">Set up GitHub Copilot and learn to leverage AI pair programming for maximum productivity.</p>
+                    <div class="course-card__meta">
+                        <span class="course-card__reading-time">10 min read</span>
+                        <span class="course-card__date"><time datetime="2026-01-25">January 25, 2026</time></span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Card 4 -->
+            <article class="course-card is-revealed">
+                <div class="course-card__thumbnail">
+                    <a href="single-tutorial.html" aria-hidden="true" tabindex="-1">
+                        <img src="https://placehold.co/640x360/F59E0B/ffffff?text=Prompt+Engineering" alt="Prompt Engineering" width="640" height="360">
+                    </a>
+                    <span class="course-card__badge difficulty--intermediate">Intermediate</span>
+                </div>
+                <div class="course-card__body">
+                    <div class="course-card__category"><a href="archive-tutorial.html">ChatGPT &amp; LLMs</a></div>
+                    <h3 class="course-card__title"><a href="single-tutorial.html">Prompt Engineering Masterclass: Get Better AI Outputs</a></h3>
+                    <p class="course-card__excerpt">Learn advanced techniques to write prompts that produce exactly the results you need.</p>
+                    <div class="course-card__meta">
+                        <span class="course-card__reading-time">15 min read</span>
+                        <span class="course-card__date"><time datetime="2026-01-28">January 28, 2026</time></span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Card 5 -->
+            <article class="course-card is-revealed">
+                <div class="course-card__thumbnail">
+                    <a href="single-tutorial.html" aria-hidden="true" tabindex="-1">
+                        <img src="https://placehold.co/640x360/10B981/ffffff?text=AI+Writing+Tools" alt="AI Writing Tools" width="640" height="360">
+                    </a>
+                    <span class="course-card__badge difficulty--beginner">Beginner</span>
+                </div>
+                <div class="course-card__body">
+                    <div class="course-card__category"><a href="archive-tutorial.html">AI Writing</a></div>
+                    <h3 class="course-card__title"><a href="single-tutorial.html">AI Writing Tools: Create Better Content in Half the Time</a></h3>
+                    <p class="course-card__excerpt">Explore the best AI writing assistants and learn how to use them for blogs, emails, and more.</p>
+                    <div class="course-card__meta">
+                        <span class="course-card__reading-time">7 min read</span>
+                        <span class="course-card__date"><time datetime="2026-02-01">February 1, 2026</time></span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Card 6 -->
+            <article class="course-card is-revealed">
+                <div class="course-card__thumbnail">
+                    <a href="single-tutorial.html" aria-hidden="true" tabindex="-1">
+                        <img src="https://placehold.co/640x360/EF4444/ffffff?text=AI+Automation" alt="AI Automation" width="640" height="360">
+                    </a>
+                    <span class="course-card__badge difficulty--advanced">Advanced</span>
+                </div>
+                <div class="course-card__body">
+                    <div class="course-card__category"><a href="archive-tutorial.html">AI for Business</a></div>
+                    <h3 class="course-card__title"><a href="single-tutorial.html">Automate Your Workflow: Build AI-Powered Business Processes</a></h3>
+                    <p class="course-card__excerpt">Connect AI tools with Zapier and Make to automate repetitive tasks and save hours daily.</p>
+                    <div class="course-card__meta">
+                        <span class="course-card__reading-time">18 min read</span>
+                        <span class="course-card__date"><time datetime="2026-02-03">February 3, 2026</time></span>
+                    </div>
+                </div>
+            </article>
+        </div>
+
+        <div class="section__footer">
+            <a href="archive-tutorial.html" class="btn btn-secondary btn-lg">
+                View All Tutorials &rarr;
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- 5. WHY US -->
+<section class="section section--dark">
+    <div class="container">
+        <div class="section__header section__header--light">
+            <span class="section__badge section__badge--dark">Why QWE</span>
+            <h2>Why Study at QWE AI Academy?</h2>
+            <p>We make learning AI accessible, practical, and enjoyable for everyone.</p>
+        </div>
+
+        <div class="advantages-grid">
+            <div class="advantage-card advantage-card--dark is-revealed">
+                <div class="advantage-card__icon-wrap" aria-hidden="true">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                </div>
+                <div class="advantage-card__number">01</div>
+                <h3>Zero to Hero Curriculum</h3>
+                <p>Structured learning paths take you from complete beginner to confident AI user. Every tutorial builds on the last.</p>
+            </div>
+            <div class="advantage-card advantage-card--dark is-revealed">
+                <div class="advantage-card__icon-wrap" aria-hidden="true">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                </div>
+                <div class="advantage-card__number">02</div>
+                <h3>Hands-On Practice</h3>
+                <p>Every tutorial includes real examples and step-by-step instructions you can follow along. Learn by doing, not just reading.</p>
+            </div>
+            <div class="advantage-card advantage-card--dark is-revealed">
+                <div class="advantage-card__icon-wrap" aria-hidden="true">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                </div>
+                <div class="advantage-card__number">03</div>
+                <h3>Cutting-Edge Content</h3>
+                <p>AI evolves fast. Our tutorials cover the latest tools — ChatGPT, Claude, Midjourney, Stable Diffusion, Copilot, and more.</p>
+            </div>
+            <div class="advantage-card advantage-card--dark is-revealed">
+                <div class="advantage-card__icon-wrap" aria-hidden="true">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 20V10"></path><path d="M12 20V4"></path><path d="M6 20v-6"></path></svg>
+                </div>
+                <div class="advantage-card__number">04</div>
+                <h3>Difficulty Levels</h3>
+                <p>Every tutorial is marked with a clear difficulty level — Beginner, Intermediate, or Advanced — so you always know what to expect.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 6. LATEST -->
+<section class="section section--alt">
+    <div class="container">
+        <div class="section__header">
+            <span class="section__badge">Latest</span>
+            <h2>Recently Published</h2>
+            <p>Fresh tutorials and articles from our editorial team.</p>
+        </div>
+
+        <div class="courses-grid">
+            <article class="course-card is-revealed">
+                <div class="course-card__thumbnail">
+                    <a href="single-tutorial.html" aria-hidden="true" tabindex="-1">
+                        <img src="https://placehold.co/640x360/6366F1/ffffff?text=Claude+AI+Guide" alt="Claude AI Guide" width="640" height="360">
+                    </a>
+                    <span class="course-card__badge difficulty--beginner">Beginner</span>
+                </div>
+                <div class="course-card__body">
+                    <div class="course-card__category"><a href="#">ChatGPT &amp; LLMs</a></div>
+                    <h3 class="course-card__title"><a href="single-tutorial.html">Getting Started with Claude AI: Complete Beginner Guide</a></h3>
+                    <p class="course-card__excerpt">Learn how to use Anthropic's Claude AI for writing, analysis, and coding tasks.</p>
+                    <div class="course-card__meta">
+                        <span class="course-card__reading-time">9 min read</span>
+                        <span class="course-card__date"><time datetime="2026-02-05">February 5, 2026</time></span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="course-card is-revealed">
+                <div class="course-card__thumbnail">
+                    <a href="single-tutorial.html" aria-hidden="true" tabindex="-1">
+                        <img src="https://placehold.co/640x360/8B5CF6/ffffff?text=DALL-E+3+Tips" alt="DALL-E 3 Tips" width="640" height="360">
+                    </a>
+                    <span class="course-card__badge difficulty--intermediate">Intermediate</span>
+                </div>
+                <div class="course-card__body">
+                    <div class="course-card__category"><a href="#">AI Art &amp; Design</a></div>
+                    <h3 class="course-card__title"><a href="single-tutorial.html">DALL-E 3 Advanced Techniques: Pro Tips for Better Images</a></h3>
+                    <p class="course-card__excerpt">Take your DALL-E creations to the next level with advanced prompting and editing techniques.</p>
+                    <div class="course-card__meta">
+                        <span class="course-card__reading-time">11 min read</span>
+                        <span class="course-card__date"><time datetime="2026-02-04">February 4, 2026</time></span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="course-card is-revealed">
+                <div class="course-card__thumbnail">
+                    <a href="single-tutorial.html" aria-hidden="true" tabindex="-1">
+                        <img src="https://placehold.co/640x360/06B6D4/ffffff?text=AI+Data+Analysis" alt="AI Data Analysis" width="640" height="360">
+                    </a>
+                    <span class="course-card__badge difficulty--beginner">Beginner</span>
+                </div>
+                <div class="course-card__body">
+                    <div class="course-card__category"><a href="#">AI Data Analysis</a></div>
+                    <h3 class="course-card__title"><a href="single-tutorial.html">Analyze Any Dataset with ChatGPT: No Coding Required</a></h3>
+                    <p class="course-card__excerpt">Upload spreadsheets to ChatGPT and get instant insights, charts, and summaries.</p>
+                    <div class="course-card__meta">
+                        <span class="course-card__reading-time">6 min read</span>
+                        <span class="course-card__date"><time datetime="2026-02-03">February 3, 2026</time></span>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
+
+<!-- 7. CTA -->
+<section class="section">
+    <div class="container">
+        <div class="cta-banner">
+            <div class="cta-banner__particles" aria-hidden="true">
+                <div class="cta-particle cta-particle--1"></div>
+                <div class="cta-particle cta-particle--2"></div>
+            </div>
+            <div class="cta-banner__content">
+                <span class="cta-banner__badge">Free &amp; Open</span>
+                <h2>Start Learning AI Today</h2>
+                <p>All our tutorials are completely free. No registration required. Just pick a topic and start learning!</p>
+                <div class="cta-banner__actions">
+                    <a href="archive-tutorial.html" class="btn btn-primary btn-lg btn-glow">
+                        Browse All Tutorials
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+</main>
+
+<footer class="site-footer" role="contentinfo">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-about">
+                <div class="site-title">QWE AI Academy</div>
+                <p>QWE AI Academy - Your free resource for learning how to use AI tools effectively. From ChatGPT to Midjourney, master AI at your own pace.</p>
+            </div>
+
+            <div class="footer-widget">
+                <h4>Popular Topics</h4>
+                <ul>
+                    <li><a href="#">ChatGPT &amp; LLMs</a></li>
+                    <li><a href="#">AI Art &amp; Design</a></li>
+                    <li><a href="#">AI Coding</a></li>
+                    <li><a href="#">AI for Business</a></li>
+                    <li><a href="#">AI Writing</a></li>
+                    <li><a href="#">AI Video &amp; Audio</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-widget">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="archive-tutorial.html">All Tutorials</a></li>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Contact</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-widget">
+                <h4>Contact</h4>
+                <ul>
+                    <li><a href="mailto:contact@qwe.edu.pl">contact@qwe.edu.pl</a></li>
+                    <li><a href="#" target="_blank" rel="noopener">Twitter / X</a></li>
+                    <li><a href="#" target="_blank" rel="noopener">GitHub</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2026 QWE AI Academy. All rights reserved.</p>
+            <p>All tutorials are free and open to everyone.</p>
+        </div>
+    </div>
+</footer>
+
+<button class="back-to-top is-visible" id="back-to-top" aria-label="Back to top">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+</button>
+
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

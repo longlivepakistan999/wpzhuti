@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found — QWE AI Academy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="screen-reader-text" href="#main-content">Skip to content</a>
+
+<header class="site-header" role="banner">
+    <div class="container">
+        <div class="site-branding">
+            <h1 class="site-title">
+                <a href="index.html">
+                    <span class="site-logo-icon" aria-hidden="true">&#x1F916;</span>
+                    QWE AI Academy
+                </a>
+            </h1>
+        </div>
+
+        <button class="menu-toggle" aria-controls="primary-menu" aria-expanded="false" aria-label="Toggle menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+
+        <nav class="main-navigation" role="navigation" aria-label="Primary Menu">
+            <ul id="primary-menu">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="archive-tutorial.html">Tutorials</a></li>
+                <li><a href="single-tutorial.html">Sample Tutorial</a></li>
+                <li><a href="search.html">Search</a></li>
+                <li class="current-menu-item"><a href="404.html">404 Page</a></li>
+            </ul>
+        </nav>
+
+        <div class="header-actions">
+            <form class="header-search" role="search" method="get" action="#">
+                <label class="screen-reader-text" for="header-search-input">Search</label>
+                <input type="search" id="header-search-input" class="header-search__input" placeholder="Search tutorials..." name="s">
+            </form>
+        </div>
+    </div>
+</header>
+
+<main id="main-content" class="site-content">
+
+<div class="section">
+    <div class="container">
+        <div class="error-404">
+            <div class="error-404__icon" aria-hidden="true">404</div>
+            <h1>Page Not Found</h1>
+            <p>The page you are looking for does not exist or has been moved. Try searching for what you need.</p>
+
+            <form role="search" method="get" class="search-form" action="#">
+                <input type="search" class="search-form__input" placeholder="Search tutorials..." name="s" style="flex:1; padding: 0.75rem 1rem; border: 2px solid #E2E8F0; border-radius: 0.5rem; font-family: var(--font-sans); font-size: 0.875rem;">
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+
+            <div class="error-404__links">
+                <h3>Popular Tutorials</h3>
+                <ul>
+                    <li><a href="single-tutorial.html">ChatGPT for Beginners: Your Complete Getting Started Guide</a></li>
+                    <li><a href="single-tutorial.html">Create Stunning AI Art with Midjourney</a></li>
+                    <li><a href="single-tutorial.html">GitHub Copilot: Write Code 10x Faster with AI</a></li>
+                    <li><a href="single-tutorial.html">Prompt Engineering Masterclass</a></li>
+                    <li><a href="single-tutorial.html">AI Writing Tools: Create Better Content</a></li>
+                </ul>
+
+                <a href="index.html" class="btn btn-secondary" style="margin-top: 1.5rem;">
+                    Back to Homepage
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+</main>
+
+<footer class="site-footer" role="contentinfo">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-about">
+                <div class="site-title">QWE AI Academy</div>
+                <p>QWE AI Academy - Your free resource for learning how to use AI tools effectively. From ChatGPT to Midjourney, master AI at your own pace.</p>
+            </div>
+            <div class="footer-widget">
+                <h4>Popular Topics</h4>
+                <ul>
+                    <li><a href="#">ChatGPT &amp; LLMs</a></li>
+                    <li><a href="#">AI Art &amp; Design</a></li>
+                    <li><a href="#">AI Coding</a></li>
+                    <li><a href="#">AI for Business</a></li>
+                    <li><a href="#">AI Writing</a></li>
+                </ul>
+            </div>
+            <div class="footer-widget">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="archive-tutorial.html">All Tutorials</a></li>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Contact</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-widget">
+                <h4>Contact</h4>
+                <ul>
+                    <li><a href="mailto:contact@qwe.edu.pl">contact@qwe.edu.pl</a></li>
+                    <li><a href="#" target="_blank" rel="noopener">Twitter / X</a></li>
+                    <li><a href="#" target="_blank" rel="noopener">GitHub</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 QWE AI Academy. All rights reserved.</p>
+            <p>All tutorials are free and open to everyone.</p>
+        </div>
+    </div>
+</footer>
+
+<button class="back-to-top" id="back-to-top" aria-label="Back to top">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+</button>
+
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

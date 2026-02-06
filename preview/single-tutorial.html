@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatGPT for Beginners: Complete Guide — QWE AI Academy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body class="single-tutorial-page">
+<a class="screen-reader-text" href="#main-content">Skip to content</a>
+
+<header class="site-header" role="banner">
+    <div class="container">
+        <div class="site-branding">
+            <h1 class="site-title">
+                <a href="index.html">
+                    <span class="site-logo-icon" aria-hidden="true">&#x1F916;</span>
+                    QWE AI Academy
+                </a>
+            </h1>
+        </div>
+
+        <button class="menu-toggle" aria-controls="primary-menu" aria-expanded="false" aria-label="Toggle menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+
+        <nav class="main-navigation" role="navigation" aria-label="Primary Menu">
+            <ul id="primary-menu">
+                <li><a href="index.html">Home</a></li>
+                <li class="current-menu-item"><a href="archive-tutorial.html">Tutorials</a></li>
+                <li><a href="search.html">Search</a></li>
+                <li><a href="404.html">404 Page</a></li>
+            </ul>
+        </nav>
+
+        <div class="header-actions">
+            <form class="header-search" role="search" method="get" action="#">
+                <label class="screen-reader-text" for="header-search-input">Search</label>
+                <input type="search" id="header-search-input" class="header-search__input" placeholder="Search tutorials..." name="s">
+            </form>
+        </div>
+    </div>
+</header>
+
+<main id="main-content" class="site-content">
+
+<!-- Breadcrumbs -->
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+    <div class="container">
+        <ol class="breadcrumbs__list" itemscope itemtype="https://schema.org/BreadcrumbList">
+            <li class="breadcrumbs__item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                <a href="index.html" itemprop="item"><span itemprop="name">Home</span></a>
+                <meta itemprop="position" content="1">
+            </li>
+            <li class="breadcrumbs__item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                <a href="archive-tutorial.html" itemprop="item"><span itemprop="name">Tutorials</span></a>
+                <meta itemprop="position" content="2">
+            </li>
+            <li class="breadcrumbs__item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                <a href="#" itemprop="item"><span itemprop="name">ChatGPT &amp; LLMs</span></a>
+                <meta itemprop="position" content="3">
+            </li>
+            <li class="breadcrumbs__item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                <span aria-current="page" itemprop="name">ChatGPT for Beginners</span>
+                <meta itemprop="position" content="4">
+            </li>
+        </ol>
+    </div>
+</nav>
+
+<!-- Reading Progress Bar -->
+<div class="reading-progress" id="reading-progress" aria-hidden="true">
+    <div class="reading-progress__bar" id="reading-progress-bar" style="width: 35%;"></div>
+</div>
+
+<article class="single-tutorial" itemscope itemtype="https://schema.org/Article">
+
+    <!-- Tutorial Header -->
+    <header class="tutorial-header">
+        <div class="container">
+            <div class="tutorial-categories">
+                <a href="archive-tutorial.html" class="tutorial-category-tag">ChatGPT &amp; LLMs</a>
+            </div>
+            <h1 class="tutorial-header__title" itemprop="headline">ChatGPT for Beginners: Your Complete Getting Started Guide</h1>
+            <p class="tutorial-header__excerpt" itemprop="description">Learn what ChatGPT is, how to create an account, and master your first conversations with AI. This tutorial covers everything you need to know to start using ChatGPT effectively.</p>
+
+            <div class="tutorial-meta">
+                <span class="tutorial-meta__difficulty difficulty--beginner">Beginner</span>
+                <span>8 min read</span>
+                <span><time datetime="2026-01-15" itemprop="datePublished">January 15, 2026</time></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Tutorial Content with TOC Sidebar -->
+    <div class="tutorial-layout">
+        <div class="container">
+            <div class="tutorial-layout__grid">
+
+                <!-- Table of Contents -->
+                <aside class="tutorial-toc" id="tutorial-toc" aria-label="Table of Contents">
+                    <div class="tutorial-toc__inner">
+                        <h3 class="tutorial-toc__title">Contents</h3>
+                        <nav class="tutorial-toc__nav" id="toc-nav">
+                            <ul class="toc-list">
+                                <li class="toc-list__item toc-list__item--h2">
+                                    <a href="#what-is-chatgpt" class="toc-list__link is-active">What is ChatGPT?</a>
+                                </li>
+                                <li class="toc-list__item toc-list__item--h2">
+                                    <a href="#getting-started" class="toc-list__link">Getting Started</a>
+                                </li>
+                                <li class="toc-list__item toc-list__item--h3">
+                                    <a href="#create-account" class="toc-list__link">Create Your Account</a>
+                                </li>
+                                <li class="toc-list__item toc-list__item--h3">
+                                    <a href="#interface-overview" class="toc-list__link">Interface Overview</a>
+                                </li>
+                                <li class="toc-list__item toc-list__item--h2">
+                                    <a href="#first-conversation" class="toc-list__link">Your First Conversation</a>
+                                </li>
+                                <li class="toc-list__item toc-list__item--h2">
+                                    <a href="#best-practices" class="toc-list__link">Best Practices</a>
+                                </li>
+                                <li class="toc-list__item toc-list__item--h2">
+                                    <a href="#common-use-cases" class="toc-list__link">Common Use Cases</a>
+                                </li>
+                                <li class="toc-list__item toc-list__item--h2">
+                                    <a href="#next-steps" class="toc-list__link">Next Steps</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </aside>
+
+                <!-- Main Content -->
+                <div class="tutorial-content" itemprop="articleBody">
+                    <figure class="tutorial-content__hero-image">
+                        <img src="https://placehold.co/1200x500/6366F1/ffffff?text=ChatGPT+Beginner+Guide" alt="ChatGPT Beginner Guide" itemprop="image" width="1200" height="500">
+                    </figure>
+
+                    <h2 id="what-is-chatgpt">What is ChatGPT?</h2>
+                    <p>ChatGPT is an AI language model developed by OpenAI. It can understand and generate human-like text, making it an incredibly versatile tool for a wide range of tasks. Whether you want to write emails, brainstorm ideas, learn new topics, or get help with coding, ChatGPT can assist you.</p>
+
+                    <blockquote>
+                        <p>ChatGPT is like having a knowledgeable assistant available 24/7 — one that can help with writing, research, analysis, coding, and creative tasks.</p>
+                    </blockquote>
+
+                    <p>Since its launch, ChatGPT has become one of the fastest-growing applications in history. Millions of people around the world use it daily for both personal and professional purposes.</p>
+
+                    <h2 id="getting-started">Getting Started</h2>
+                    <p>Getting started with ChatGPT is straightforward and takes just a few minutes. Here's what you need to do:</p>
+
+                    <h3 id="create-account">Create Your Account</h3>
+                    <ol>
+                        <li>Visit <code>chat.openai.com</code> in your web browser</li>
+                        <li>Click the "Sign Up" button</li>
+                        <li>Enter your email address and create a password</li>
+                        <li>Verify your email address by clicking the link sent to your inbox</li>
+                        <li>Complete the setup process</li>
+                    </ol>
+
+                    <p>You can use ChatGPT for free with the GPT-3.5 model. If you want access to the more powerful GPT-4 model, you can subscribe to ChatGPT Plus for $20/month.</p>
+
+                    <h3 id="interface-overview">Interface Overview</h3>
+                    <p>Once you log in, you'll see a clean, simple interface:</p>
+                    <ul>
+                        <li><strong>Chat area</strong> — The main conversation space where you type messages and see responses</li>
+                        <li><strong>Sidebar</strong> — Lists your previous conversations for easy access</li>
+                        <li><strong>Model selector</strong> — Choose between different GPT models</li>
+                        <li><strong>New Chat button</strong> — Start a fresh conversation at any time</li>
+                    </ul>
+
+                    <h2 id="first-conversation">Your First Conversation</h2>
+                    <p>Let's try your first conversation. Simply type a message in the input box at the bottom of the screen. Here are some examples to try:</p>
+
+                    <pre><code>Example prompt:
+"Explain quantum computing in simple terms that a high school student would understand."
+
+Another example:
+"Write a professional email to my manager requesting time off next Friday."</code></pre>
+
+                    <p>ChatGPT will respond almost instantly with a detailed, well-structured answer. You can then continue the conversation by asking follow-up questions or requesting modifications.</p>
+
+                    <h2 id="best-practices">Best Practices</h2>
+                    <p>To get the most out of ChatGPT, keep these tips in mind:</p>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Practice</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Be Specific</td>
+                                <td>The more detail you provide in your prompt, the better the response will be</td>
+                            </tr>
+                            <tr>
+                                <td>Provide Context</td>
+                                <td>Tell ChatGPT who you are, what you're working on, and what you need</td>
+                            </tr>
+                            <tr>
+                                <td>Iterate</td>
+                                <td>Don't expect perfection on the first try — refine your prompts based on responses</td>
+                            </tr>
+                            <tr>
+                                <td>Verify Facts</td>
+                                <td>Always double-check important facts, especially dates and statistics</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h2 id="common-use-cases">Common Use Cases</h2>
+                    <p>Here are some popular ways people use ChatGPT:</p>
+                    <ul>
+                        <li><strong>Writing assistance</strong> — Drafting emails, articles, social media posts</li>
+                        <li><strong>Learning</strong> — Explaining complex topics in simple terms</li>
+                        <li><strong>Brainstorming</strong> — Generating ideas for projects, names, or strategies</li>
+                        <li><strong>Coding help</strong> — Writing, debugging, and explaining code</li>
+                        <li><strong>Translation</strong> — Translating text between languages</li>
+                        <li><strong>Summarization</strong> — Condensing long texts into key points</li>
+                    </ul>
+
+                    <h2 id="next-steps">Next Steps</h2>
+                    <p>Now that you know the basics, here are some recommended next steps to deepen your AI skills:</p>
+                    <ol>
+                        <li>Read our <strong>Prompt Engineering Masterclass</strong> to learn advanced prompting techniques</li>
+                        <li>Explore our <strong>ChatGPT &amp; LLMs department</strong> for more in-depth tutorials</li>
+                        <li>Try using ChatGPT for a real project — the best way to learn is by doing</li>
+                    </ol>
+
+                    <blockquote>
+                        <p>Remember: AI is a tool that amplifies your skills. The better you get at using it, the more productive and creative you'll become.</p>
+                    </blockquote>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Post Navigation -->
+    <nav class="post-navigation" aria-label="Tutorial navigation">
+        <div class="post-navigation__inner">
+            <a href="single-tutorial.html" class="post-navigation__link post-navigation__link--prev">
+                <span class="post-navigation__label">&larr; Previous Tutorial</span>
+                <span class="post-navigation__title">Understanding AI: What It Is and How It Works</span>
+            </a>
+            <a href="single-tutorial.html" class="post-navigation__link post-navigation__link--next">
+                <span class="post-navigation__label">Next Tutorial &rarr;</span>
+                <span class="post-navigation__title">Prompt Engineering Masterclass: Get Better AI Outputs</span>
+            </a>
+        </div>
+    </nav>
+
+</article>
+
+<!-- Related Tutorials -->
+<section class="section related-tutorials">
+    <div class="container">
+        <h2 class="related-tutorials__title">Related Tutorials</h2>
+        <div class="courses-grid">
+            <article class="course-card">
+                <div class="course-card__thumbnail">
+                    <a href="single-tutorial.html" aria-hidden="true" tabindex="-1">
+                        <img src="https://placehold.co/640x360/F59E0B/ffffff?text=Prompt+Engineering" alt="Prompt Engineering" width="640" height="360">
+                    </a>
+                    <span class="course-card__badge difficulty--intermediate">Intermediate</span>
+                </div>
+                <div class="course-card__body">
+                    <div class="course-card__category"><a href="#">ChatGPT &amp; LLMs</a></div>
+                    <h3 class="course-card__title"><a href="single-tutorial.html">Prompt Engineering Masterclass: Get Better AI Outputs</a></h3>
+                    <p class="course-card__excerpt">Learn advanced techniques to write prompts that produce exactly the results you need.</p>
+                    <div class="course-card__meta">
+                        <span class="course-card__reading-time">15 min read</span>
+                        <span class="course-card__date"><time datetime="2026-01-28">Jan 28, 2026</time></span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="course-card">
+                <div class="course-card__thumbnail">
+                    <a href="single-tutorial.html" aria-hidden="true" tabindex="-1">
+                        <img src="https://placehold.co/640x360/6366F1/ffffff?text=Claude+AI+Guide" alt="Claude AI Guide" width="640" height="360">
+                    </a>
+                    <span class="course-card__badge difficulty--beginner">Beginner</span>
+                </div>
+                <div class="course-card__body">
+                    <div class="course-card__category"><a href="#">ChatGPT &amp; LLMs</a></div>
+                    <h3 class="course-card__title"><a href="single-tutorial.html">Getting Started with Claude AI: Complete Beginner Guide</a></h3>
+                    <p class="course-card__excerpt">Learn how to use Anthropic's Claude AI for writing, analysis, and coding tasks.</p>
+                    <div class="course-card__meta">
+                        <span class="course-card__reading-time">9 min read</span>
+                        <span class="course-card__date"><time datetime="2026-02-05">Feb 5, 2026</time></span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="course-card">
+                <div class="course-card__thumbnail">
+                    <a href="single-tutorial.html" aria-hidden="true" tabindex="-1">
+                        <img src="https://placehold.co/640x360/06B6D4/ffffff?text=AI+Data+Analysis" alt="AI Data Analysis" width="640" height="360">
+                    </a>
+                    <span class="course-card__badge difficulty--beginner">Beginner</span>
+                </div>
+                <div class="course-card__body">
+                    <div class="course-card__category"><a href="#">AI Data Analysis</a></div>
+                    <h3 class="course-card__title"><a href="single-tutorial.html">Analyze Any Dataset with ChatGPT: No Coding Required</a></h3>
+                    <p class="course-card__excerpt">Upload spreadsheets to ChatGPT and get instant insights, charts, and summaries.</p>
+                    <div class="course-card__meta">
+                        <span class="course-card__reading-time">6 min read</span>
+                        <span class="course-card__date"><time datetime="2026-02-03">Feb 3, 2026</time></span>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
+
+</main>
+
+<footer class="site-footer" role="contentinfo">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-about">
+                <div class="site-title">QWE AI Academy</div>
+                <p>QWE AI Academy - Your free resource for learning how to use AI tools effectively. From ChatGPT to Midjourney, master AI at your own pace.</p>
+            </div>
+            <div class="footer-widget">
+                <h4>Popular Topics</h4>
+                <ul>
+                    <li><a href="#">ChatGPT &amp; LLMs</a></li>
+                    <li><a href="#">AI Art &amp; Design</a></li>
+                    <li><a href="#">AI Coding</a></li>
+                    <li><a href="#">AI for Business</a></li>
+                    <li><a href="#">AI Writing</a></li>
+                </ul>
+            </div>
+            <div class="footer-widget">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="archive-tutorial.html">All Tutorials</a></li>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Contact</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-widget">
+                <h4>Contact</h4>
+                <ul>
+                    <li><a href="mailto:contact@qwe.edu.pl">contact@qwe.edu.pl</a></li>
+                    <li><a href="#" target="_blank" rel="noopener">Twitter / X</a></li>
+                    <li><a href="#" target="_blank" rel="noopener">GitHub</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 QWE AI Academy. All rights reserved.</p>
+            <p>All tutorials are free and open to everyone.</p>
+        </div>
+    </div>
+</footer>
+
+<button class="back-to-top" id="back-to-top" aria-label="Back to top">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+</button>
+
+<script src="../assets/js/main.js"></script>
+</body>
+</html>
