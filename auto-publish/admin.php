@@ -29,6 +29,9 @@ $secret = htmlspecialchars( $_GET['key'], ENT_QUOTES, 'UTF-8' );
 $base_url = '?key=' . $secret;
 $categories = unserialize( QWE_CATEGORIES );
 
+// Determine current view/tab early (needed for redirect context).
+$view = isset( $_GET['view'] ) ? $_GET['view'] : 'dashboard';
+
 // Handle actions.
 $message = '';
 if ( isset( $_GET['action'] ) ) {
@@ -118,11 +121,78 @@ if ( isset( $_GET['action'] ) ) {
         }
         $message = 'Log cleared.';
     }
+
+    // Add keyword(s).
+    if ( 'add-keyword' === $action && isset( $_POST['keywords'] ) && isset( $_POST['kw_category'] ) && isset( $_POST['kw_difficulty'] ) ) {
+        $raw = trim( $_POST['keywords'] );
+        $cat = sanitize_slug( $_POST['kw_category'] );
+        $diff = sanitize_slug( $_POST['kw_difficulty'] );
+        $valid_cats = array_keys( $categories );
+        $valid_diffs = array( 'beginner', 'intermediate', 'advanced' );
+
+        if ( $raw && in_array( $cat, $valid_cats, true ) && in_array( $diff, $valid_diffs, true ) ) {
+            $lines = array_filter( array_map( 'trim', preg_split( '/[\r\n]+/', $raw ) ) );
+            $added_kw = 0;
+            foreach ( $lines as $line ) {
+                if ( strlen( $line ) >= 5 ) {
+                    $result = QWE_DB::add_keyword( $line, $cat, $diff );
+                    if ( $result ) {
+                        $added_kw++;
+                    }
+                }
+            }
+            $message = "Added {$added_kw} keyword(s) to '{$cat}' ({$diff}).";
+        } else {
+            $message = 'Invalid input. Please check category, difficulty, and keywords.';
+        }
+    }
+
+    // Delete keyword.
+    if ( 'delete-keyword' === $action && isset( $_GET['kw_id'] ) ) {
+        $kw_id = (int) $_GET['kw_id'];
+        if ( QWE_DB::delete_keyword( $kw_id ) ) {
+            $message = "Keyword #{$kw_id} deleted.";
+        } else {
+            $message = "Could not delete keyword #{$kw_id} (may already be used).";
+        }
+    }
+
+    // Delete trending topic.
+    if ( 'delete-trending' === $action && isset( $_GET['tr_id'] ) ) {
+        $tr_id = (int) $_GET['tr_id'];
+        if ( QWE_DB::delete_trending( $tr_id ) ) {
+            $message = "Trending topic #{$tr_id} deleted.";
+        } else {
+            $message = "Could not delete trending #{$tr_id} (may already be used).";
+        }
+    }
+}
+
+/**
+ * Simple slug sanitizer (no WP dependency needed here).
+ */
+function sanitize_slug( $input ) {
+    return preg_replace( '/[^a-z0-9\-]/', '', strtolower( trim( $input ) ) );
 }
 
 // Get stats.
 $stats = QWE_DB::get_stats();
 $pending = QWE_DB::count_pending_keywords();
+
+// Keyword management data (only load when needed).
+$kw_list = array();
+$kw_total = 0;
+if ( 'keywords' === $view ) {
+    $kw_filter_status = isset( $_GET['kw_status'] ) ? $_GET['kw_status'] : 'pending';
+    $kw_filter_cat    = isset( $_GET['kw_cat'] ) ? $_GET['kw_cat'] : 'all';
+    $kw_page          = max( 1, isset( $_GET['kw_page'] ) ? (int) $_GET['kw_page'] : 1 );
+    $kw_per_page      = 50;
+    $kw_offset        = ( $kw_page - 1 ) * $kw_per_page;
+
+    $kw_list  = QWE_DB::get_keywords( $kw_filter_status, $kw_filter_cat, $kw_per_page, $kw_offset );
+    $kw_total = QWE_DB::count_keywords( $kw_filter_status, $kw_filter_cat );
+    $kw_pages = max( 1, ceil( $kw_total / $kw_per_page ) );
+}
 
 // Get recent articles.
 $pdo = QWE_DB::connect();
@@ -190,7 +260,25 @@ if ( file_exists( $log_file ) ) {
         .config-table td:first-child { font-weight: 600; width: 200px; }
         .progress-bar { height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; margin-top: 6px; }
         .progress-bar__fill { height: 100%; background: linear-gradient(90deg, #4F46E5, #06B6D4); border-radius: 3px; }
-        @media (max-width: 768px) { .grid { grid-template-columns: repeat(2, 1fr); } .actions { flex-direction: column; } }
+        .tabs { display: flex; gap: 0; border-bottom: 2px solid #e5e7eb; margin-bottom: 24px; }
+        .tab { padding: 10px 20px; text-decoration: none; color: #64748b; font-weight: 600; font-size: 14px; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+        .tab:hover { color: #4F46E5; }
+        .tab.active { color: #4F46E5; border-bottom-color: #4F46E5; }
+        .form-row { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 12px; flex-wrap: wrap; }
+        .form-row label { font-weight: 600; font-size: 13px; color: #374151; min-width: 80px; padding-top: 8px; }
+        .form-row select, .form-row input[type="text"] { padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; }
+        .form-row textarea { padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; width: 100%; min-height: 80px; font-family: inherit; resize: vertical; }
+        .btn-xs { padding: 4px 10px; font-size: 12px; border-radius: 4px; }
+        .pagination { display: flex; gap: 6px; align-items: center; margin-top: 16px; flex-wrap: wrap; }
+        .pagination a, .pagination span { padding: 6px 12px; border-radius: 6px; font-size: 13px; text-decoration: none; }
+        .pagination a { background: white; color: #4F46E5; border: 1px solid #d1d5db; }
+        .pagination a:hover { background: #EEF2FF; }
+        .pagination .current { background: #4F46E5; color: white; border: 1px solid #4F46E5; }
+        .filter-bar { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+        .filter-bar select { padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; }
+        .filter-bar .btn { padding: 6px 14px; }
+        .info-text { color: #64748b; font-size: 13px; }
+        @media (max-width: 768px) { .grid { grid-template-columns: repeat(2, 1fr); } .actions { flex-direction: column; } .form-row { flex-direction: column; } .form-row label { min-width: auto; } }
     </style>
 </head>
 <body>
@@ -203,6 +291,17 @@ if ( file_exists( $log_file ) ) {
         <?php if ( $message ) : ?>
             <div class="message"><?php echo htmlspecialchars( $message ); ?></div>
         <?php endif; ?>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <a href="<?php echo $base_url; ?>" class="tab <?php echo 'dashboard' === $view ? 'active' : ''; ?>">Dashboard</a>
+            <a href="<?php echo $base_url; ?>&view=keywords" class="tab <?php echo 'keywords' === $view ? 'active' : ''; ?>">Keywords (<?php echo $stats['pending_keywords']; ?>)</a>
+            <a href="<?php echo $base_url; ?>&view=trending" class="tab <?php echo 'trending' === $view ? 'active' : ''; ?>">Trending</a>
+            <a href="<?php echo $base_url; ?>&view=log" class="tab <?php echo 'log' === $view ? 'active' : ''; ?>">Log</a>
+        </div>
+
+        <?php if ( 'dashboard' === $view ) : ?>
+        <!-- ===================== DASHBOARD VIEW ===================== -->
 
         <!-- Stats -->
         <div class="grid">
@@ -298,14 +397,133 @@ if ( file_exists( $log_file ) ) {
             <?php endif; ?>
         </div>
 
-        <!-- Pending Trending -->
-        <?php if ( QWE_TRENDING_ENABLED && ! empty( $pending_trending ) ) : ?>
+        <?php endif; // end dashboard view ?>
+
+
+        <?php if ( 'keywords' === $view ) : ?>
+        <!-- ===================== KEYWORDS VIEW ===================== -->
+
+        <!-- Add Keywords (Batch) -->
         <div class="section">
-            <h2>Pending Trending Topics (Top 20)</h2>
+            <h2>Add Keywords (Batch)</h2>
+            <form method="POST" action="<?php echo $base_url; ?>&action=add-keyword&view=keywords">
+                <div class="form-row">
+                    <label>Category</label>
+                    <select name="kw_category">
+                        <?php foreach ( $categories as $slug => $name ) : ?>
+                        <option value="<?php echo $slug; ?>"><?php echo htmlspecialchars( $name ); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>Difficulty</label>
+                    <select name="kw_difficulty">
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>Keywords</label>
+                    <textarea name="keywords" placeholder="One keyword per line, e.g.:&#10;how to use ChatGPT for resume writing&#10;best AI tools for small business&#10;midjourney vs stable diffusion comparison"></textarea>
+                </div>
+                <div class="form-row">
+                    <label></label>
+                    <button type="submit" class="btn btn-primary">Add Keywords</button>
+                    <span class="info-text" style="padding-top:8px">One keyword per line. Duplicates are automatically skipped.</span>
+                </div>
+            </form>
+        </div>
+
+        <!-- Keyword List -->
+        <div class="section">
+            <h2>All Keywords (<?php echo $kw_total; ?> total)</h2>
+
+            <!-- Filters -->
+            <form class="filter-bar" method="GET">
+                <input type="hidden" name="key" value="<?php echo $secret; ?>">
+                <input type="hidden" name="view" value="keywords">
+                <select name="kw_status">
+                    <option value="all" <?php echo 'all' === $kw_filter_status ? 'selected' : ''; ?>>All Status</option>
+                    <option value="pending" <?php echo 'pending' === $kw_filter_status ? 'selected' : ''; ?>>Pending</option>
+                    <option value="used" <?php echo 'used' === $kw_filter_status ? 'selected' : ''; ?>>Used</option>
+                </select>
+                <select name="kw_cat">
+                    <option value="all" <?php echo 'all' === $kw_filter_cat ? 'selected' : ''; ?>>All Categories</option>
+                    <?php foreach ( $categories as $slug => $name ) : ?>
+                    <option value="<?php echo $slug; ?>" <?php echo $slug === $kw_filter_cat ? 'selected' : ''; ?>><?php echo htmlspecialchars( $name ); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <button type="submit" class="btn btn-secondary">Filter</button>
+            </form>
+
+            <?php if ( empty( $kw_list ) ) : ?>
+                <p class="info-text">No keywords found with current filters.</p>
+            <?php else : ?>
             <table>
-                <tr><th>Title</th><th>Source</th><th>Score</th><th>Category</th><th>Fetched</th></tr>
+                <tr><th>ID</th><th>Keyword</th><th>Category</th><th>Difficulty</th><th>Status</th><th>Post ID</th><th>Action</th></tr>
+                <?php foreach ( $kw_list as $kw ) : ?>
+                <tr>
+                    <td><?php echo $kw['id']; ?></td>
+                    <td><?php echo htmlspecialchars( $kw['keyword'] ); ?></td>
+                    <td><?php echo htmlspecialchars( isset( $categories[ $kw['category'] ] ) ? $categories[ $kw['category'] ] : $kw['category'] ); ?></td>
+                    <td><span class="badge badge-<?php echo $kw['difficulty']; ?>"><?php echo $kw['difficulty']; ?></span></td>
+                    <td>
+                        <?php if ( 'used' === $kw['status'] ) : ?>
+                            <span class="badge badge-trending">used</span>
+                        <?php else : ?>
+                            <span class="badge badge-enabled">pending</span>
+                        <?php endif; ?>
+                    </td>
+                    <td><?php echo $kw['post_id'] ? $kw['post_id'] : '-'; ?></td>
+                    <td>
+                        <?php if ( 'pending' === $kw['status'] ) : ?>
+                        <a href="<?php echo $base_url; ?>&action=delete-keyword&kw_id=<?php echo $kw['id']; ?>&view=keywords&kw_status=<?php echo $kw_filter_status; ?>&kw_cat=<?php echo $kw_filter_cat; ?>&kw_page=<?php echo $kw_page; ?>" class="btn btn-danger btn-xs" onclick="return confirm('Delete this keyword?')">Delete</a>
+                        <?php else : ?>
+                        <span class="info-text">-</span>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </table>
+
+            <!-- Pagination -->
+            <?php if ( $kw_pages > 1 ) : ?>
+            <div class="pagination">
+                <?php for ( $p = 1; $p <= $kw_pages; $p++ ) : ?>
+                    <?php if ( $p === $kw_page ) : ?>
+                        <span class="current"><?php echo $p; ?></span>
+                    <?php else : ?>
+                        <a href="<?php echo $base_url; ?>&view=keywords&kw_status=<?php echo $kw_filter_status; ?>&kw_cat=<?php echo $kw_filter_cat; ?>&kw_page=<?php echo $p; ?>"><?php echo $p; ?></a>
+                    <?php endif; ?>
+                <?php endfor; ?>
+                <span class="info-text">(<?php echo $kw_total; ?> keywords)</span>
+            </div>
+            <?php endif; ?>
+            <?php endif; ?>
+        </div>
+
+        <?php endif; // end keywords view ?>
+
+
+        <?php if ( 'trending' === $view ) : ?>
+        <!-- ===================== TRENDING VIEW ===================== -->
+
+        <div class="actions">
+            <a href="<?php echo $base_url; ?>&action=fetch&view=trending" class="btn btn-success">Fetch Trending Topics Now</a>
+        </div>
+
+        <div class="section">
+            <h2>Pending Trending Topics (<?php echo $stats['pending_trending']; ?>)</h2>
+            <p class="info-text" style="margin-bottom:12px">Topics are auto-deleted after 7 days if unused. Used topics are kept permanently as records.</p>
+            <?php if ( empty( $pending_trending ) ) : ?>
+                <p class="info-text">No pending trending topics.</p>
+            <?php else : ?>
+            <table>
+                <tr><th>ID</th><th>Title</th><th>Source</th><th>Score</th><th>Category</th><th>Fetched</th><th>Action</th></tr>
                 <?php foreach ( $pending_trending as $t ) : ?>
                 <tr>
+                    <td><?php echo $t['id']; ?></td>
                     <td><?php echo htmlspecialchars( mb_strimwidth( $t['title'], 0, 70, '...' ) ); ?></td>
                     <td><?php
                         if ( 'reddit' === $t['source'] ) {
@@ -313,23 +531,39 @@ if ( file_exists( $log_file ) ) {
                         } elseif ( 'hackernews' === $t['source'] ) {
                             echo 'Hacker News';
                         } else {
-                            echo htmlspecialchars( $t['subreddit'] ); // RSS feed name stored in subreddit field.
+                            echo htmlspecialchars( $t['subreddit'] );
                         }
                     ?></td>
                     <td><?php echo $t['score']; ?></td>
                     <td><?php echo htmlspecialchars( $t['category'] ); ?></td>
                     <td><?php echo $t['fetched_at']; ?></td>
+                    <td>
+                        <a href="<?php echo $base_url; ?>&action=delete-trending&tr_id=<?php echo $t['id']; ?>&view=trending" class="btn btn-danger btn-xs" onclick="return confirm('Delete this trending topic?')">Delete</a>
+                    </td>
                 </tr>
                 <?php endforeach; ?>
             </table>
+            <?php endif; ?>
         </div>
-        <?php endif; ?>
 
-        <!-- Log -->
+        <?php endif; // end trending view ?>
+
+
+        <?php if ( 'log' === $view ) : ?>
+        <!-- ===================== LOG VIEW ===================== -->
+
+        <div class="actions">
+            <a href="<?php echo $base_url; ?>&action=clear-log&view=log" class="btn btn-danger" onclick="return confirm('Clear the log file?')">Clear Log</a>
+            <a href="<?php echo $base_url; ?>&view=log" class="btn btn-secondary">Refresh</a>
+        </div>
+
         <div class="section">
             <h2>Recent Log (Last 50 lines)</h2>
             <div class="log"><?php echo $log_content ? htmlspecialchars( $log_content ) : 'No log entries yet.'; ?></div>
         </div>
+
+        <?php endif; // end log view ?>
+
     </div>
 </body>
 </html>

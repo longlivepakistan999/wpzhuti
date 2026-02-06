@@ -141,6 +141,93 @@ class QWE_DB {
         return $stmt->fetchAll( PDO::FETCH_KEY_PAIR );
     }
 
+    /**
+     * Delete a keyword by ID (only pending ones).
+     */
+    public static function delete_keyword( $id ) {
+        $pdo = self::connect();
+        $stmt = $pdo->prepare(
+            "DELETE FROM keywords WHERE id = ? AND status = 'pending'"
+        );
+        $stmt->execute( array( $id ) );
+        return $stmt->rowCount() > 0;
+    }
+
+    /**
+     * Get all keywords with optional filters.
+     *
+     * @param string $status   Filter by status ('pending', 'used', or 'all').
+     * @param string $category Filter by category slug (or 'all').
+     * @param int    $limit    Max results.
+     * @param int    $offset   Offset for pagination.
+     * @return array
+     */
+    public static function get_keywords( $status = 'all', $category = 'all', $limit = 50, $offset = 0 ) {
+        $pdo = self::connect();
+        $where = array();
+        $params = array();
+
+        if ( 'all' !== $status ) {
+            $where[] = 'status = ?';
+            $params[] = $status;
+        }
+        if ( 'all' !== $category ) {
+            $where[] = 'category = ?';
+            $params[] = $category;
+        }
+
+        $sql = 'SELECT * FROM keywords';
+        if ( ! empty( $where ) ) {
+            $sql .= ' WHERE ' . implode( ' AND ', $where );
+        }
+        $sql .= ' ORDER BY category ASC, keyword ASC LIMIT ? OFFSET ?';
+        $params[] = $limit;
+        $params[] = $offset;
+
+        $stmt = $pdo->prepare( $sql );
+        $stmt->execute( $params );
+        return $stmt->fetchAll( PDO::FETCH_ASSOC );
+    }
+
+    /**
+     * Count keywords with optional filters.
+     */
+    public static function count_keywords( $status = 'all', $category = 'all' ) {
+        $pdo = self::connect();
+        $where = array();
+        $params = array();
+
+        if ( 'all' !== $status ) {
+            $where[] = 'status = ?';
+            $params[] = $status;
+        }
+        if ( 'all' !== $category ) {
+            $where[] = 'category = ?';
+            $params[] = $category;
+        }
+
+        $sql = 'SELECT COUNT(*) FROM keywords';
+        if ( ! empty( $where ) ) {
+            $sql .= ' WHERE ' . implode( ' AND ', $where );
+        }
+
+        $stmt = $pdo->prepare( $sql );
+        $stmt->execute( $params );
+        return (int) $stmt->fetchColumn();
+    }
+
+    /**
+     * Delete a trending topic by ID (only pending ones).
+     */
+    public static function delete_trending( $id ) {
+        $pdo = self::connect();
+        $stmt = $pdo->prepare(
+            "DELETE FROM trending WHERE id = ? AND status = 'pending'"
+        );
+        $stmt->execute( array( $id ) );
+        return $stmt->rowCount() > 0;
+    }
+
     // ==========================================================
     // Trending
     // ==========================================================
