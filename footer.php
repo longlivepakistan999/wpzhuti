@@ -2,7 +2,19 @@
 
 <footer class="site-footer" role="contentinfo">
     <div class="container">
-        <div class="footer-grid">
+        <?php
+        $has_friend_links = false;
+        if ( is_front_page() ) {
+            $has_friend_links = (bool) get_posts( array(
+                'post_type'      => 'friend_link',
+                'posts_per_page' => 1,
+                'post_status'    => 'publish',
+                'fields'         => 'ids',
+                'no_found_rows'  => true,
+            ) );
+        }
+        ?>
+        <div class="footer-grid<?php echo $has_friend_links ? ' footer-grid--5col' : ''; ?>">
             <div class="footer-about">
                 <div class="site-title"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></div>
                 <p><?php echo esc_html( get_theme_mod( 'qwe_footer_about', __( 'QWE AI Academy - Your free resource for learning how to use AI tools effectively. From ChatGPT to Midjourney, master AI at your own pace.', 'qwe-developer-flavor' ) ) ); ?></p>
