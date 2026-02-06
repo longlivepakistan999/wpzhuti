@@ -192,7 +192,19 @@ function generate_trending_article() {
         return generate_longtail_article();
     }
 
-    log_msg( "Generating trending: \"{$trending_data['title']}\" [r/{$trending_data['subreddit']}]" );
+    // Check if this topic was already published (prevents duplicate content).
+    if ( QWE_DB::keyword_already_used( $trending_data['title'] ) ) {
+        log_msg( "Trending topic already published: \"{$trending_data['title']}\", skipping" );
+        return false;
+    }
+
+    $source_label = 'r/' . $trending_data['subreddit'];
+    if ( 'hackernews' === $trending_data['source'] ) {
+        $source_label = 'Hacker News';
+    } elseif ( 'rss' === $trending_data['source'] ) {
+        $source_label = $trending_data['subreddit'];
+    }
+    log_msg( "Generating trending: \"{$trending_data['title']}\" [{$source_label}]" );
 
     // Use the trending title as the keyword.
     $article = QWE_Generator::generate(

@@ -206,19 +206,19 @@ TCTX;
         );
         $tone = $tones[ array_rand( $tones ) ];
 
-        return <<<PROMPT
-Write a tutorial about: "{$keyword}"
-{$type_context}
-{$category_hint}Difficulty: {$difficulty}
+        $prompt = <<<'PROMPT'
+Write a tutorial about: "{{KEYWORD}}"
+{{TYPE_CONTEXT}}
+{{CATEGORY_HINT}}Difficulty: {{DIFFICULTY}}
 
 Categories (pick best match):
-{$category_list}
+{{CATEGORY_LIST}}
 
-{$angle}
+{{ANGLE}}
 
-{$structure}
+{{STRUCTURE}}
 
-{$tone}
+{{TONE}}
 
 REQUIREMENTS:
 - Keyword in first 100 words, in one H2, and in the excerpt
@@ -234,6 +234,12 @@ REQUIREMENTS:
 
 Respond ONLY with valid JSON.
 PROMPT;
+
+        return str_replace(
+            array( '{{KEYWORD}}', '{{TYPE_CONTEXT}}', '{{CATEGORY_HINT}}', '{{DIFFICULTY}}', '{{CATEGORY_LIST}}', '{{ANGLE}}', '{{STRUCTURE}}', '{{TONE}}' ),
+            array( $keyword, $type_context, $category_hint, $difficulty, $category_list, $angle, $structure, $tone ),
+            $prompt
+        );
     }
 
     /**

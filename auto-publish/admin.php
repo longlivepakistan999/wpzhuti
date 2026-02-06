@@ -93,6 +93,10 @@ if ( isset( $_GET['action'] ) ) {
                     }
                 }
             } else {
+                // Skip if this topic was already published (prevents duplicate content).
+                if ( QWE_DB::keyword_already_used( $tr['title'] ) ) {
+                    continue;
+                }
                 $article = QWE_Generator::generate( $tr['title'], 'trending', $tr['category'], 'beginner' );
                 if ( $article ) {
                     $post_id = QWE_Publisher::publish( $article );
