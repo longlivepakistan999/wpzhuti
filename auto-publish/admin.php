@@ -177,6 +177,14 @@ function sanitize_slug( $input ) {
 }
 
 /**
+ * Sanitize a value for safe use in a CSS class name.
+ * Only allows lowercase letters, digits, and hyphens.
+ */
+function safe_css_class( $value ) {
+    return preg_replace( '/[^a-z0-9\-]/', '', strtolower( $value ) );
+}
+
+/**
  * Render pagination links.
  *
  * @param int    $current   Current page number.
@@ -263,23 +271,35 @@ if ( 'keywords' === $view ) {
 $per_page = 20;
 $pdo = QWE_DB::connect();
 
-// Articles pagination (dashboard view).
-$art_page = max( 1, isset( $_GET['art_page'] ) ? (int) $_GET['art_page'] : 1 );
-$art_total = (int) $pdo->query( "SELECT COUNT(*) FROM articles" )->fetchColumn();
-$art_pages = max( 1, ceil( $art_total / $per_page ) );
-$art_offset = ( $art_page - 1 ) * $per_page;
-$stmt = $pdo->prepare( "SELECT * FROM articles ORDER BY created_at DESC LIMIT ? OFFSET ?" );
-$stmt->execute( array( $per_page, $art_offset ) );
-$recent = $stmt->fetchAll( PDO::FETCH_ASSOC );
+// Articles pagination (only on dashboard view).
+$recent = array();
+$art_page = 1;
+$art_total = 0;
+$art_pages = 1;
+if ( 'dashboard' === $view ) {
+    $art_page = max( 1, isset( $_GET['art_page'] ) ? (int) $_GET['art_page'] : 1 );
+    $art_total = (int) $pdo->query( "SELECT COUNT(*) FROM articles" )->fetchColumn();
+    $art_pages = max( 1, ceil( $art_total / $per_page ) );
+    $art_offset = ( $art_page - 1 ) * $per_page;
+    $stmt = $pdo->prepare( "SELECT * FROM articles ORDER BY created_at DESC LIMIT ? OFFSET ?" );
+    $stmt->execute( array( $per_page, $art_offset ) );
+    $recent = $stmt->fetchAll( PDO::FETCH_ASSOC );
+}
 
-// Trending pagination (trending view).
-$tr_page = max( 1, isset( $_GET['tr_page'] ) ? (int) $_GET['tr_page'] : 1 );
-$tr_total = (int) $pdo->query( "SELECT COUNT(*) FROM trending WHERE status = 'pending'" )->fetchColumn();
-$tr_pages = max( 1, ceil( $tr_total / $per_page ) );
-$tr_offset = ( $tr_page - 1 ) * $per_page;
-$stmt = $pdo->prepare( "SELECT * FROM trending WHERE status = 'pending' ORDER BY score DESC LIMIT ? OFFSET ?" );
-$stmt->execute( array( $per_page, $tr_offset ) );
-$pending_trending = $stmt->fetchAll( PDO::FETCH_ASSOC );
+// Trending pagination (only on trending view).
+$pending_trending = array();
+$tr_page = 1;
+$tr_total = 0;
+$tr_pages = 1;
+if ( 'trending' === $view ) {
+    $tr_page = max( 1, isset( $_GET['tr_page'] ) ? (int) $_GET['tr_page'] : 1 );
+    $tr_total = (int) $pdo->query( "SELECT COUNT(*) FROM trending WHERE status = 'pending'" )->fetchColumn();
+    $tr_pages = max( 1, ceil( $tr_total / $per_page ) );
+    $tr_offset = ( $tr_page - 1 ) * $per_page;
+    $stmt = $pdo->prepare( "SELECT * FROM trending WHERE status = 'pending' ORDER BY score DESC LIMIT ? OFFSET ?" );
+    $stmt->execute( array( $per_page, $tr_offset ) );
+    $pending_trending = $stmt->fetchAll( PDO::FETCH_ASSOC );
+}
 
 // Search data (search view).
 $search_q = '';
@@ -287,39 +307,63 @@ $search_results = array( 'keywords' => array(), 'articles' => array(), 'trending
 $search_counts = array( 'keywords' => 0, 'articles' => 0, 'trending' => 0 );
 if ( 'search' === $view && isset( $_GET['q'] ) && strlen( trim( $_GET['q'] ) ) >= 2 ) {
     $search_q = trim( $_GET['q'] );
-    $like = '%' . $search_q . '%';
+    // Escape LIKE wildcards (% and _) in user input to prevent unintended matches.
+    $escaped_q = str_replace( array( '%', '_' ), array( '\\%', '\\_' ), $search_q );
+    $like = '%' . $escaped_q . '%';
 
     // Search keywords.
-    $stmt = $pdo->prepare( "SELECT COUNT(*) FROM keywords WHERE keyword LIKE ?" );
+    $stmt = $pdo->prepare( "SELECT COUNT(*) FROM keywords WHERE keyword LIKE ? ESCAPE '\\'" );
     $stmt->execute( array( $like ) );
     $search_counts['keywords'] = (int) $stmt->fetchColumn();
-    $stmt = $pdo->prepare( "SELECT * FROM keywords WHERE keyword LIKE ? ORDER BY status ASC, category ASC LIMIT 50" );
+    $stmt = $pdo->prepare( "SELECT * FROM keywords WHERE keyword LIKE ? ESCAPE '\\' ORDER BY status ASC, category ASC LIMIT 50" );
     $stmt->execute( array( $like ) );
     $search_results['keywords'] = $stmt->fetchAll( PDO::FETCH_ASSOC );
 
     // Search articles.
-    $stmt = $pdo->prepare( "SELECT COUNT(*) FROM articles WHERE title LIKE ? OR keyword LIKE ?" );
+    $stmt = $pdo->prepare( "SELECT COUNT(*) FROM articles WHERE title LIKE ? ESCAPE '\\' OR keyword LIKE ? ESCAPE '\\'" );
     $stmt->execute( array( $like, $like ) );
     $search_counts['articles'] = (int) $stmt->fetchColumn();
-    $stmt = $pdo->prepare( "SELECT * FROM articles WHERE title LIKE ? OR keyword LIKE ? ORDER BY created_at DESC LIMIT 50" );
+    $stmt = $pdo->prepare( "SELECT * FROM articles WHERE title LIKE ? ESCAPE '\\' OR keyword LIKE ? ESCAPE '\\' ORDER BY created_at DESC LIMIT 50" );
     $stmt->execute( array( $like, $like ) );
     $search_results['articles'] = $stmt->fetchAll( PDO::FETCH_ASSOC );
 
     // Search trending.
-    $stmt = $pdo->prepare( "SELECT COUNT(*) FROM trending WHERE title LIKE ?" );
+    $stmt = $pdo->prepare( "SELECT COUNT(*) FROM trending WHERE title LIKE ? ESCAPE '\\'" );
     $stmt->execute( array( $like ) );
     $search_counts['trending'] = (int) $stmt->fetchColumn();
-    $stmt = $pdo->prepare( "SELECT * FROM trending WHERE title LIKE ? ORDER BY status ASC, score DESC LIMIT 50" );
+    $stmt = $pdo->prepare( "SELECT * FROM trending WHERE title LIKE ? ESCAPE '\\' ORDER BY status ASC, score DESC LIMIT 50" );
     $stmt->execute( array( $like ) );
     $search_results['trending'] = $stmt->fetchAll( PDO::FETCH_ASSOC );
 }
 
-// Get log tail.
+// Get log tail (only on log view).
 $log_content = '';
 $log_file = __DIR__ . '/data/auto_publish.log';
-if ( file_exists( $log_file ) ) {
-    $lines = file( $log_file );
-    $log_content = implode( '', array_slice( $lines, -50 ) );
+if ( 'log' === $view && file_exists( $log_file ) ) {
+    // Read last 50 lines efficiently without loading entire file into memory.
+    $tail_lines = 50;
+    $fp = fopen( $log_file, 'r' );
+    if ( $fp ) {
+        $buffer = '';
+        $line_count = 0;
+        // Seek from end of file in chunks.
+        fseek( $fp, 0, SEEK_END );
+        $pos = ftell( $fp );
+        $chunk_size = 4096;
+        while ( $pos > 0 && $line_count < $tail_lines + 1 ) {
+            $read_size = min( $chunk_size, $pos );
+            $pos -= $read_size;
+            fseek( $fp, $pos );
+            $chunk = fread( $fp, $read_size );
+            $buffer = $chunk . $buffer;
+            $line_count = substr_count( $buffer, "\n" );
+        }
+        fclose( $fp );
+        $lines = explode( "\n", $buffer );
+        // Take last 50 non-empty lines.
+        $lines = array_slice( $lines, -( $tail_lines + 1 ) );
+        $log_content = implode( "\n", $lines );
+    }
 }
 
 ?>
@@ -460,7 +504,6 @@ if ( file_exists( $log_file ) ) {
             <a href="<?php echo $base_url; ?>&action=run" class="btn btn-primary" onclick="return confirm('Run auto-publish now? This will generate and publish articles.')">Generate & Publish Now</a>
             <a href="<?php echo $base_url; ?>&action=fetch" class="btn btn-success">Fetch Trending Topics</a>
             <a href="<?php echo $base_url; ?>" class="btn btn-secondary">Refresh</a>
-            <a href="<?php echo $base_url; ?>&action=clear-log" class="btn btn-danger" onclick="return confirm('Clear the log file?')">Clear Log</a>
         </div>
 
         <!-- Config -->
@@ -468,7 +511,7 @@ if ( file_exists( $log_file ) ) {
             <h2>Configuration</h2>
             <table class="config-table">
                 <tr><td>AI Provider</td><td><?php echo QWE_AI_PROVIDER; ?></td></tr>
-                <tr><td>API Key</td><td><?php echo QWE_CLAUDE_API_KEY ? '****' . substr( QWE_CLAUDE_API_KEY, -6 ) : '<span style="color:red">NOT SET</span>'; ?></td></tr>
+                <tr><td>API Key</td><td><?php echo QWE_CLAUDE_API_KEY ? '****' . htmlspecialchars( substr( QWE_CLAUDE_API_KEY, -6 ) ) : '<span style="color:red">NOT SET</span>'; ?></td></tr>
                 <tr><td>Articles Per Run</td><td><?php echo QWE_ARTICLES_PER_RUN; ?></td></tr>
                 <tr><td>Post Status</td><td><?php echo QWE_POST_STATUS; ?></td></tr>
                 <tr><td>Trending</td><td><span class="badge <?php echo QWE_TRENDING_ENABLED ? 'badge-enabled' : 'badge-disabled'; ?>"><?php echo QWE_TRENDING_ENABLED ? 'ENABLED' : 'DISABLED'; ?></span></td></tr>
@@ -516,9 +559,9 @@ if ( file_exists( $log_file ) ) {
                 <tr>
                     <td><?php echo $article['post_id']; ?></td>
                     <td><?php echo htmlspecialchars( mb_strimwidth( $article['title'], 0, 60, '...' ) ); ?></td>
-                    <td><span class="badge badge-<?php echo $article['keyword_type']; ?>"><?php echo $article['keyword_type']; ?></span></td>
+                    <td><span class="badge badge-<?php echo safe_css_class( $article['keyword_type'] ); ?>"><?php echo htmlspecialchars( $article['keyword_type'] ); ?></span></td>
                     <td><?php echo htmlspecialchars( $article['category'] ); ?></td>
-                    <td><span class="badge badge-<?php echo $article['difficulty']; ?>"><?php echo $article['difficulty']; ?></span></td>
+                    <td><span class="badge badge-<?php echo safe_css_class( $article['difficulty'] ); ?>"><?php echo htmlspecialchars( $article['difficulty'] ); ?></span></td>
                     <td><?php echo $article['created_at']; ?></td>
                 </tr>
                 <?php endforeach; ?>
@@ -597,7 +640,7 @@ if ( file_exists( $log_file ) ) {
                     <td><?php echo $kw['id']; ?></td>
                     <td><?php echo htmlspecialchars( $kw['keyword'] ); ?></td>
                     <td><?php echo htmlspecialchars( isset( $categories[ $kw['category'] ] ) ? $categories[ $kw['category'] ] : $kw['category'] ); ?></td>
-                    <td><span class="badge badge-<?php echo $kw['difficulty']; ?>"><?php echo $kw['difficulty']; ?></span></td>
+                    <td><span class="badge badge-<?php echo safe_css_class( $kw['difficulty'] ); ?>"><?php echo htmlspecialchars( $kw['difficulty'] ); ?></span></td>
                     <td>
                         <?php if ( 'used' === $kw['status'] ) : ?>
                             <span class="badge badge-trending">used</span>
@@ -712,8 +755,8 @@ if ( file_exists( $log_file ) ) {
                             <td><?php echo $kw['id']; ?></td>
                             <td><?php echo htmlspecialchars( $kw['keyword'] ); ?></td>
                             <td><?php echo htmlspecialchars( isset( $categories[ $kw['category'] ] ) ? $categories[ $kw['category'] ] : $kw['category'] ); ?></td>
-                            <td><span class="badge badge-<?php echo $kw['difficulty']; ?>"><?php echo $kw['difficulty']; ?></span></td>
-                            <td><span class="badge badge-<?php echo $kw['status'] === 'used' ? 'used' : 'pending'; ?>"><?php echo $kw['status']; ?></span></td>
+                            <td><span class="badge badge-<?php echo safe_css_class( $kw['difficulty'] ); ?>"><?php echo htmlspecialchars( $kw['difficulty'] ); ?></span></td>
+                            <td><span class="badge badge-<?php echo $kw['status'] === 'used' ? 'used' : 'pending'; ?>"><?php echo htmlspecialchars( $kw['status'] ); ?></span></td>
                             <td>
                                 <?php if ( 'pending' === $kw['status'] ) : ?>
                                 <a href="<?php echo $base_url; ?>&action=delete-keyword&kw_id=<?php echo $kw['id']; ?>&view=search&q=<?php echo urlencode( $search_q ); ?>" class="btn btn-danger btn-xs" onclick="return confirm('Delete this keyword?')">Delete</a>
@@ -741,7 +784,7 @@ if ( file_exists( $log_file ) ) {
                             <td><?php echo $art['post_id']; ?></td>
                             <td><?php echo htmlspecialchars( mb_strimwidth( $art['title'], 0, 60, '...' ) ); ?></td>
                             <td><?php echo htmlspecialchars( mb_strimwidth( $art['keyword'], 0, 40, '...' ) ); ?></td>
-                            <td><span class="badge badge-<?php echo $art['keyword_type']; ?>"><?php echo $art['keyword_type']; ?></span></td>
+                            <td><span class="badge badge-<?php echo safe_css_class( $art['keyword_type'] ); ?>"><?php echo htmlspecialchars( $art['keyword_type'] ); ?></span></td>
                             <td><?php echo htmlspecialchars( $art['category'] ); ?></td>
                             <td><?php echo $art['created_at']; ?></td>
                         </tr>
@@ -773,7 +816,7 @@ if ( file_exists( $log_file ) ) {
                                 }
                             ?></td>
                             <td><?php echo $t['score']; ?></td>
-                            <td><span class="badge badge-<?php echo $t['status'] === 'used' ? 'used' : 'pending'; ?>"><?php echo $t['status']; ?></span></td>
+                            <td><span class="badge badge-<?php echo $t['status'] === 'used' ? 'used' : 'pending'; ?>"><?php echo htmlspecialchars( $t['status'] ); ?></span></td>
                             <td>
                                 <?php if ( 'pending' === $t['status'] ) : ?>
                                 <a href="<?php echo $base_url; ?>&action=delete-trending&tr_id=<?php echo $t['id']; ?>&view=search&q=<?php echo urlencode( $search_q ); ?>" class="btn btn-danger btn-xs" onclick="return confirm('Delete this trending topic?')">Delete</a>
