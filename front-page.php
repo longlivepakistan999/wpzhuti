@@ -264,5 +264,22 @@ get_header();
     </div>
 </section>
 
+<!-- 8. FRIEND LINKS -->
+<?php if ( has_nav_menu( 'friend-links' ) ) : ?>
+<section class="section friend-links">
+    <div class="container">
+        <h3 class="friend-links__title"><?php esc_html_e( 'Friend Links', 'qwe-developer-flavor' ); ?></h3>
+        <?php
+        wp_nav_menu( array(
+            'theme_location' => 'friend-links',
+            'container'      => false,
+            'menu_class'     => 'friend-links__list',
+            'depth'          => 1,
+        ) );
+        ?>
+    </div>
+</section>
+<?php endif; ?>
+
 <?php
 get_footer();
