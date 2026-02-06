@@ -30,7 +30,7 @@ $base_url = '?key=' . $secret;
 $categories = unserialize( QWE_CATEGORIES );
 
 // Determine current view/tab early (needed for redirect context).
-$valid_views = array( 'dashboard', 'keywords', 'trending', 'log' );
+$valid_views = array( 'dashboard', 'keywords', 'trending', 'log', 'search' );
 $view = isset( $_GET['view'] ) && in_array( $_GET['view'], $valid_views, true ) ? $_GET['view'] : 'dashboard';
 
 // Handle actions.
@@ -281,6 +281,39 @@ $stmt = $pdo->prepare( "SELECT * FROM trending WHERE status = 'pending' ORDER BY
 $stmt->execute( array( $per_page, $tr_offset ) );
 $pending_trending = $stmt->fetchAll( PDO::FETCH_ASSOC );
 
+// Search data (search view).
+$search_q = '';
+$search_results = array( 'keywords' => array(), 'articles' => array(), 'trending' => array() );
+$search_counts = array( 'keywords' => 0, 'articles' => 0, 'trending' => 0 );
+if ( 'search' === $view && isset( $_GET['q'] ) && strlen( trim( $_GET['q'] ) ) >= 2 ) {
+    $search_q = trim( $_GET['q'] );
+    $like = '%' . $search_q . '%';
+
+    // Search keywords.
+    $stmt = $pdo->prepare( "SELECT COUNT(*) FROM keywords WHERE keyword LIKE ?" );
+    $stmt->execute( array( $like ) );
+    $search_counts['keywords'] = (int) $stmt->fetchColumn();
+    $stmt = $pdo->prepare( "SELECT * FROM keywords WHERE keyword LIKE ? ORDER BY status ASC, category ASC LIMIT 50" );
+    $stmt->execute( array( $like ) );
+    $search_results['keywords'] = $stmt->fetchAll( PDO::FETCH_ASSOC );
+
+    // Search articles.
+    $stmt = $pdo->prepare( "SELECT COUNT(*) FROM articles WHERE title LIKE ? OR keyword LIKE ?" );
+    $stmt->execute( array( $like, $like ) );
+    $search_counts['articles'] = (int) $stmt->fetchColumn();
+    $stmt = $pdo->prepare( "SELECT * FROM articles WHERE title LIKE ? OR keyword LIKE ? ORDER BY created_at DESC LIMIT 50" );
+    $stmt->execute( array( $like, $like ) );
+    $search_results['articles'] = $stmt->fetchAll( PDO::FETCH_ASSOC );
+
+    // Search trending.
+    $stmt = $pdo->prepare( "SELECT COUNT(*) FROM trending WHERE title LIKE ?" );
+    $stmt->execute( array( $like ) );
+    $search_counts['trending'] = (int) $stmt->fetchColumn();
+    $stmt = $pdo->prepare( "SELECT * FROM trending WHERE title LIKE ? ORDER BY status ASC, score DESC LIMIT 50" );
+    $stmt->execute( array( $like ) );
+    $search_results['trending'] = $stmt->fetchAll( PDO::FETCH_ASSOC );
+}
+
 // Get log tail.
 $log_content = '';
 $log_file = __DIR__ . '/data/auto_publish.log';
@@ -354,7 +387,16 @@ if ( file_exists( $log_file ) ) {
         .filter-bar select { padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; }
         .filter-bar .btn { padding: 6px 14px; }
         .info-text { color: #64748b; font-size: 13px; }
-        @media (max-width: 768px) { .grid { grid-template-columns: repeat(2, 1fr); } .actions { flex-direction: column; } .form-row { flex-direction: column; } .form-row label { min-width: auto; } }
+        .search-bar { display: flex; gap: 8px; margin-left: auto; align-items: center; }
+        .search-bar input[type="text"] { padding: 6px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; width: 200px; }
+        .search-bar .btn { padding: 6px 14px; font-size: 13px; }
+        .search-highlight { background: #FEF3C7; padding: 1px 2px; border-radius: 2px; }
+        .result-group { margin-bottom: 8px; }
+        .result-group h3 { font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .result-count { background: #EEF2FF; color: #4F46E5; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+        .badge-used { background: #FEE2E2; color: #DC2626; }
+        .badge-pending { background: #D1FAE5; color: #065F46; }
+        @media (max-width: 768px) { .grid { grid-template-columns: repeat(2, 1fr); } .actions { flex-direction: column; } .form-row { flex-direction: column; } .form-row label { min-width: auto; } .search-bar { margin-left: 0; width: 100%; } .search-bar input[type="text"] { flex: 1; } }
     </style>
 </head>
 <body>
@@ -374,6 +416,12 @@ if ( file_exists( $log_file ) ) {
             <a href="<?php echo $base_url; ?>&view=keywords" class="tab <?php echo 'keywords' === $view ? 'active' : ''; ?>">Keywords (<?php echo $stats['pending_keywords']; ?>)</a>
             <a href="<?php echo $base_url; ?>&view=trending" class="tab <?php echo 'trending' === $view ? 'active' : ''; ?>">Trending</a>
             <a href="<?php echo $base_url; ?>&view=log" class="tab <?php echo 'log' === $view ? 'active' : ''; ?>">Log</a>
+            <form class="search-bar" method="GET">
+                <input type="hidden" name="key" value="<?php echo $secret; ?>">
+                <input type="hidden" name="view" value="search">
+                <input type="text" name="q" placeholder="Search keywords, articles, trending..." value="<?php echo htmlspecialchars( $search_q ); ?>">
+                <button type="submit" class="btn btn-secondary">Search</button>
+            </form>
         </div>
 
         <?php if ( 'dashboard' === $view ) : ?>
@@ -634,6 +682,118 @@ if ( file_exists( $log_file ) ) {
         </div>
 
         <?php endif; // end log view ?>
+
+
+        <?php if ( 'search' === $view ) : ?>
+        <!-- ===================== SEARCH VIEW ===================== -->
+
+        <?php if ( ! $search_q ) : ?>
+            <div class="section">
+                <h2>Search</h2>
+                <p class="info-text">Enter at least 2 characters to search across keywords, articles, and trending topics.</p>
+            </div>
+        <?php else : ?>
+            <?php $total_found = $search_counts['keywords'] + $search_counts['articles'] + $search_counts['trending']; ?>
+            <div class="section">
+                <h2>Search Results for "<?php echo htmlspecialchars( $search_q ); ?>" (<?php echo $total_found; ?> found)</h2>
+
+                <?php if ( 0 === $total_found ) : ?>
+                    <p class="info-text">No results found. Try a different search term.</p>
+                <?php endif; ?>
+
+                <!-- Keywords Results -->
+                <?php if ( ! empty( $search_results['keywords'] ) ) : ?>
+                <div class="result-group">
+                    <h3>Keywords <span class="result-count"><?php echo $search_counts['keywords']; ?></span></h3>
+                    <table>
+                        <tr><th>ID</th><th>Keyword</th><th>Category</th><th>Difficulty</th><th>Status</th><th>Action</th></tr>
+                        <?php foreach ( $search_results['keywords'] as $kw ) : ?>
+                        <tr>
+                            <td><?php echo $kw['id']; ?></td>
+                            <td><?php echo htmlspecialchars( $kw['keyword'] ); ?></td>
+                            <td><?php echo htmlspecialchars( isset( $categories[ $kw['category'] ] ) ? $categories[ $kw['category'] ] : $kw['category'] ); ?></td>
+                            <td><span class="badge badge-<?php echo $kw['difficulty']; ?>"><?php echo $kw['difficulty']; ?></span></td>
+                            <td><span class="badge badge-<?php echo $kw['status'] === 'used' ? 'used' : 'pending'; ?>"><?php echo $kw['status']; ?></span></td>
+                            <td>
+                                <?php if ( 'pending' === $kw['status'] ) : ?>
+                                <a href="<?php echo $base_url; ?>&action=delete-keyword&kw_id=<?php echo $kw['id']; ?>&view=search&q=<?php echo urlencode( $search_q ); ?>" class="btn btn-danger btn-xs" onclick="return confirm('Delete this keyword?')">Delete</a>
+                                <?php else : ?>
+                                <span class="info-text">Post #<?php echo $kw['post_id']; ?></span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </table>
+                    <?php if ( $search_counts['keywords'] > 50 ) : ?>
+                        <p class="info-text" style="margin-top:8px">Showing first 50 of <?php echo $search_counts['keywords']; ?> results. Use the Keywords tab for full list.</p>
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
+
+                <!-- Articles Results -->
+                <?php if ( ! empty( $search_results['articles'] ) ) : ?>
+                <div class="result-group">
+                    <h3>Articles <span class="result-count"><?php echo $search_counts['articles']; ?></span></h3>
+                    <table>
+                        <tr><th>Post ID</th><th>Title</th><th>Keyword</th><th>Type</th><th>Category</th><th>Date</th></tr>
+                        <?php foreach ( $search_results['articles'] as $art ) : ?>
+                        <tr>
+                            <td><?php echo $art['post_id']; ?></td>
+                            <td><?php echo htmlspecialchars( mb_strimwidth( $art['title'], 0, 60, '...' ) ); ?></td>
+                            <td><?php echo htmlspecialchars( mb_strimwidth( $art['keyword'], 0, 40, '...' ) ); ?></td>
+                            <td><span class="badge badge-<?php echo $art['keyword_type']; ?>"><?php echo $art['keyword_type']; ?></span></td>
+                            <td><?php echo htmlspecialchars( $art['category'] ); ?></td>
+                            <td><?php echo $art['created_at']; ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </table>
+                    <?php if ( $search_counts['articles'] > 50 ) : ?>
+                        <p class="info-text" style="margin-top:8px">Showing first 50 of <?php echo $search_counts['articles']; ?> results.</p>
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
+
+                <!-- Trending Results -->
+                <?php if ( ! empty( $search_results['trending'] ) ) : ?>
+                <div class="result-group">
+                    <h3>Trending Topics <span class="result-count"><?php echo $search_counts['trending']; ?></span></h3>
+                    <table>
+                        <tr><th>ID</th><th>Title</th><th>Source</th><th>Score</th><th>Status</th><th>Action</th></tr>
+                        <?php foreach ( $search_results['trending'] as $t ) : ?>
+                        <tr>
+                            <td><?php echo $t['id']; ?></td>
+                            <td><?php echo htmlspecialchars( mb_strimwidth( $t['title'], 0, 60, '...' ) ); ?></td>
+                            <td><?php
+                                if ( 'reddit' === $t['source'] ) {
+                                    echo 'r/' . htmlspecialchars( $t['subreddit'] );
+                                } elseif ( 'hackernews' === $t['source'] ) {
+                                    echo 'Hacker News';
+                                } else {
+                                    echo htmlspecialchars( $t['subreddit'] );
+                                }
+                            ?></td>
+                            <td><?php echo $t['score']; ?></td>
+                            <td><span class="badge badge-<?php echo $t['status'] === 'used' ? 'used' : 'pending'; ?>"><?php echo $t['status']; ?></span></td>
+                            <td>
+                                <?php if ( 'pending' === $t['status'] ) : ?>
+                                <a href="<?php echo $base_url; ?>&action=delete-trending&tr_id=<?php echo $t['id']; ?>&view=search&q=<?php echo urlencode( $search_q ); ?>" class="btn btn-danger btn-xs" onclick="return confirm('Delete this trending topic?')">Delete</a>
+                                <?php else : ?>
+                                <span class="info-text">Post #<?php echo $t['post_id']; ?></span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </table>
+                    <?php if ( $search_counts['trending'] > 50 ) : ?>
+                        <p class="info-text" style="margin-top:8px">Showing first 50 of <?php echo $search_counts['trending']; ?> results.</p>
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
+
+            </div>
+        <?php endif; ?>
+
+        <?php endif; // end search view ?>
 
     </div>
 </body>
