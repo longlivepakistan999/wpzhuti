@@ -16,7 +16,7 @@ if ( have_posts() ) : the_post();
     <div class="container">
         <article <?php post_class( 'page-content' ); ?>>
             <header class="page-content__header">
-                <h1><?php the_title(); ?></h1>
+                <h1><?php echo esc_html( get_the_title() ); ?></h1>
             </header>
 
             <div class="page-content__body tutorial-content">

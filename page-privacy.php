@@ -14,7 +14,7 @@ get_header();
     <div class="container">
         <article class="page-content privacy-page">
             <header class="page-content__header">
-                <h1><?php the_title(); ?></h1>
+                <h1><?php echo esc_html( get_the_title() ); ?></h1>
                 <p class="privacy-page__updated">
                     <?php
                     printf(

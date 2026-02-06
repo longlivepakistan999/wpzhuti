@@ -25,7 +25,7 @@ if ( have_posts() ) : the_post();
                 </div>
             <?php endif; ?>
 
-            <h1 class="tutorial-header__title" itemprop="headline"><?php the_title(); ?></h1>
+            <h1 class="tutorial-header__title" itemprop="headline"><?php echo esc_html( get_the_title() ); ?></h1>
 
             <div class="tutorial-meta">
                 <span class="tutorial-meta__date">

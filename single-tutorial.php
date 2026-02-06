@@ -23,7 +23,7 @@ if ( have_posts() ) : the_post();
     <header class="tutorial-header">
         <div class="container">
             <?php qwe_tutorial_categories(); ?>
-            <h1 class="tutorial-header__title" itemprop="headline"><?php the_title(); ?></h1>
+            <h1 class="tutorial-header__title" itemprop="headline"><?php echo esc_html( get_the_title() ); ?></h1>
 
             <?php if ( has_excerpt() ) : ?>
                 <p class="tutorial-header__excerpt" itemprop="description"><?php echo esc_html( get_the_excerpt() ); ?></p>

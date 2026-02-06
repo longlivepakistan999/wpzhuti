@@ -34,6 +34,21 @@
                         'container'      => false,
                         'depth'          => 1,
                     ) );
+                } else {
+                    // Fallback links when no footer menu is assigned.
+                    echo '<ul>';
+                    echo '<li><a href="' . esc_url( home_url( '/' ) ) . '">' . esc_html__( 'Home', 'qwe-developer-flavor' ) . '</a></li>';
+                    $archive_link = get_post_type_archive_link( 'tutorial' );
+                    if ( $archive_link ) {
+                        echo '<li><a href="' . esc_url( $archive_link ) . '">' . esc_html__( 'All Tutorials', 'qwe-developer-flavor' ) . '</a></li>';
+                    }
+                    $footer_pages = get_pages( array( 'number' => 4, 'sort_column' => 'menu_order' ) );
+                    if ( $footer_pages ) {
+                        foreach ( $footer_pages as $fp ) {
+                            echo '<li><a href="' . esc_url( get_permalink( $fp ) ) . '">' . esc_html( $fp->post_title ) . '</a></li>';
+                        }
+                    }
+                    echo '</ul>';
                 }
                 ?>
             </div>

@@ -30,7 +30,7 @@
         <?php endif; ?>
 
         <h3 class="course-card__title" itemprop="headline">
-            <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+            <a href="<?php the_permalink(); ?>"><?php echo esc_html( get_the_title() ); ?></a>
         </h3>
 
         <p class="course-card__excerpt" itemprop="description"><?php echo esc_html( get_the_excerpt() ); ?></p>

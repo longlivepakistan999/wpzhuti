@@ -13,7 +13,7 @@ get_header();
 <div class="section">
     <div class="container">
         <header class="section__header">
-            <h1><?php the_title(); ?></h1>
+            <h1><?php echo esc_html( get_the_title() ); ?></h1>
         </header>
 
         <!-- Mission -->

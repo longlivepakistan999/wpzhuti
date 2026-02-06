@@ -18,13 +18,16 @@
         <div class="site-branding">
             <?php if ( has_custom_logo() ) : ?>
                 <?php the_custom_logo(); ?>
-            <?php else : ?>
-                <h1 class="site-title">
+            <?php else :
+                // Use h1 only on front page; p on inner pages to avoid multiple h1 tags.
+                $title_tag = ( is_front_page() && ! is_paged() ) ? 'h1' : 'p';
+            ?>
+                <<?php echo $title_tag; // phpcs:ignore ?> class="site-title">
                     <a href="<?php echo esc_url( home_url( '/' ) ); ?>">
                         <span class="site-logo-icon" aria-hidden="true">&#x1F916;</span>
                         <?php echo esc_html( get_bloginfo( 'name' ) ); ?>
                     </a>
-                </h1>
+                </<?php echo $title_tag; // phpcs:ignore ?>>
             <?php endif; ?>
         </div>
 
