@@ -173,6 +173,42 @@ function qwe_pre_get_posts( $query ) {
 add_action( 'pre_get_posts', 'qwe_pre_get_posts' );
 
 /**
+ * Fallback menu when no menu is assigned to Primary Menu location.
+ * Displays key pages automatically.
+ */
+function qwe_fallback_menu() {
+    echo '<ul id="primary-menu">';
+    echo '<li><a href="' . esc_url( home_url( '/' ) ) . '">' . esc_html__( 'Home', 'qwe-developer-flavor' ) . '</a></li>';
+
+    $archive_link = get_post_type_archive_link( 'tutorial' );
+    if ( $archive_link ) {
+        echo '<li><a href="' . esc_url( $archive_link ) . '">' . esc_html__( 'Tutorials', 'qwe-developer-flavor' ) . '</a></li>';
+    }
+
+    $pages = get_pages( array( 'number' => 5, 'sort_column' => 'menu_order' ) );
+    if ( $pages ) {
+        foreach ( $pages as $page ) {
+            echo '<li><a href="' . esc_url( get_permalink( $page ) ) . '">' . esc_html( $page->post_title ) . '</a></li>';
+        }
+    }
+    echo '</ul>';
+}
+
+/**
+ * Ensure rewrite rules are up-to-date.
+ *
+ * Flushes rewrite rules once after theme setup if the tutorial
+ * post type rules are not yet registered. This fixes the /tutorial/ 404 issue.
+ */
+function qwe_maybe_flush_rewrite_rules() {
+    if ( get_option( 'qwe_rewrite_rules_flushed' ) !== QWE_THEME_VERSION ) {
+        flush_rewrite_rules();
+        update_option( 'qwe_rewrite_rules_flushed', QWE_THEME_VERSION );
+    }
+}
+add_action( 'init', 'qwe_maybe_flush_rewrite_rules', 99 );
+
+/**
  * Estimated reading time for tutorials.
  */
 function qwe_reading_time( $post_id = null ) {

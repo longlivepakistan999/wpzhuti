@@ -38,14 +38,13 @@
 
         <nav class="main-navigation" role="navigation" aria-label="<?php esc_attr_e( 'Primary Menu', 'qwe-developer-flavor' ); ?>">
             <?php
-            if ( has_nav_menu( 'primary' ) ) {
-                wp_nav_menu( array(
-                    'theme_location' => 'primary',
-                    'menu_id'        => 'primary-menu',
-                    'container'      => false,
-                    'depth'          => 2,
-                ) );
-            }
+            wp_nav_menu( array(
+                'theme_location' => 'primary',
+                'menu_id'        => 'primary-menu',
+                'container'      => false,
+                'depth'          => 2,
+                'fallback_cb'    => 'qwe_fallback_menu',
+            ) );
             ?>
         </nav>
 

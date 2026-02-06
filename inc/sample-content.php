@@ -138,8 +138,15 @@ function qwe_generate_sample_content() {
 
     $count = 0;
     foreach ( $tutorials as $tutorial ) {
-        $existing = get_page_by_title( $tutorial['title'], OBJECT, 'tutorial' );
-        if ( $existing ) {
+        $existing = get_posts( array(
+            'post_type'              => 'tutorial',
+            'title'                  => $tutorial['title'],
+            'posts_per_page'         => 1,
+            'no_found_rows'          => true,
+            'update_post_meta_cache' => false,
+            'update_post_term_cache' => false,
+        ) );
+        if ( ! empty( $existing ) ) {
             continue;
         }
 

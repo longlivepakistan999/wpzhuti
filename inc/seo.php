@@ -117,7 +117,12 @@ function qwe_output_og_tags() {
     echo '<meta property="og:site_name" content="' . esc_attr( get_bloginfo( 'name' ) ) . '">' . "\n";
     echo '<meta property="og:locale" content="' . esc_attr( get_locale() ) . '">' . "\n";
 
-    if ( is_singular() ) {
+    if ( is_front_page() ) {
+        echo '<meta property="og:type" content="website">' . "\n";
+        echo '<meta property="og:title" content="' . esc_attr( get_bloginfo( 'name' ) ) . '">' . "\n";
+        echo '<meta property="og:description" content="' . esc_attr( get_bloginfo( 'description' ) ) . '">' . "\n";
+        echo '<meta property="og:url" content="' . esc_url( home_url( '/' ) ) . '">' . "\n";
+    } elseif ( is_singular() ) {
         echo '<meta property="og:type" content="article">' . "\n";
         echo '<meta property="og:title" content="' . esc_attr( get_the_title() ) . '">' . "\n";
         echo '<meta property="og:description" content="' . esc_attr( get_the_excerpt() ) . '">' . "\n";
@@ -134,11 +139,6 @@ function qwe_output_og_tags() {
                 echo '<meta property="og:image:height" content="' . esc_attr( $img_meta['height'] ) . '">' . "\n";
             }
         }
-    } elseif ( is_front_page() ) {
-        echo '<meta property="og:type" content="website">' . "\n";
-        echo '<meta property="og:title" content="' . esc_attr( get_bloginfo( 'name' ) ) . '">' . "\n";
-        echo '<meta property="og:description" content="' . esc_attr( get_bloginfo( 'description' ) ) . '">' . "\n";
-        echo '<meta property="og:url" content="' . esc_url( home_url( '/' ) ) . '">' . "\n";
     } elseif ( is_post_type_archive( 'tutorial' ) ) {
         echo '<meta property="og:type" content="website">' . "\n";
         echo '<meta property="og:title" content="' . esc_attr__( 'AI Tutorials', 'qwe-developer-flavor' ) . '">' . "\n";
@@ -167,6 +167,8 @@ function qwe_meta_description() {
         $description = get_bloginfo( 'description' );
     } elseif ( is_singular() ) {
         $description = get_the_excerpt();
+    } elseif ( is_post_type_archive( 'tutorial' ) ) {
+        $description = __( 'Free AI tutorials - Learn ChatGPT, AI art, AI coding, and more at QWE AI Academy', 'qwe-developer-flavor' );
     } elseif ( is_tax( 'tutorial_category' ) ) {
         $term = get_queried_object();
         $description = $term->description ? $term->description : sprintf(
@@ -174,8 +176,6 @@ function qwe_meta_description() {
             __( 'Free %s tutorials - Learn AI at QWE AI Academy', 'qwe-developer-flavor' ),
             $term->name
         );
-    } elseif ( is_post_type_archive( 'tutorial' ) ) {
-        $description = __( 'Free AI tutorials - Learn ChatGPT, AI art, AI coding, and more at QWE AI Academy', 'qwe-developer-flavor' );
     }
 
     if ( $description ) {
@@ -185,14 +185,13 @@ function qwe_meta_description() {
 add_action( 'wp_head', 'qwe_meta_description', 1 );
 
 /**
- * Output canonical URL.
+ * Extend WordPress canonical URLs to cover archives.
+ *
+ * WordPress handles canonical for singular and front page natively since 5.0.
+ * We only add canonical for custom post type archives and taxonomy archives.
  */
 function qwe_canonical_url() {
-    if ( is_singular() ) {
-        echo '<link rel="canonical" href="' . esc_url( get_permalink() ) . '">' . "\n";
-    } elseif ( is_front_page() ) {
-        echo '<link rel="canonical" href="' . esc_url( home_url( '/' ) ) . '">' . "\n";
-    } elseif ( is_post_type_archive( 'tutorial' ) || is_tax( 'tutorial_category' ) ) {
+    if ( is_post_type_archive( 'tutorial' ) || is_tax( 'tutorial_category' ) ) {
         echo '<link rel="canonical" href="' . esc_url( get_pagenum_link() ) . '">' . "\n";
     }
 }
@@ -212,10 +211,10 @@ add_action( 'wp_head', 'qwe_robots_meta', 1 );
  * Add hreflang tag for English content.
  */
 function qwe_hreflang_tag() {
-    if ( is_singular() ) {
-        $url = get_permalink();
-    } elseif ( is_front_page() ) {
+    if ( is_front_page() ) {
         $url = home_url( '/' );
+    } elseif ( is_singular() ) {
+        $url = get_permalink();
     } elseif ( is_post_type_archive( 'tutorial' ) ) {
         $url = get_post_type_archive_link( 'tutorial' );
     } elseif ( is_tax( 'tutorial_category' ) ) {

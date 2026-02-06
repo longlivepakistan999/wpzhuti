@@ -15,12 +15,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 function qwe_resource_hints( $urls, $relation_type ) {
     if ( 'preconnect' === $relation_type ) {
         $urls[] = array(
-            'href'        => 'https://fonts.googleapis.com',
-            'crossorigin' => true,
+            'href' => 'https://fonts.googleapis.com',
         );
         $urls[] = array(
             'href'        => 'https://fonts.gstatic.com',
-            'crossorigin' => true,
+            'crossorigin' => 'anonymous',
         );
     }
     return $urls;
