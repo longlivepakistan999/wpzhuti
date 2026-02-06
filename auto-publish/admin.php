@@ -67,6 +67,11 @@ if ( isset( $_GET['action'] ) ) {
         for ( $i = 0; $i < $longtail_count; $i++ ) {
             $kw = QWE_DB::get_next_keyword();
             if ( ! $kw ) break;
+            // Skip if this keyword was already published (prevents cross-source duplicates).
+            if ( QWE_DB::keyword_already_used( $kw['keyword'] ) ) {
+                QWE_DB::mark_keyword_used( $kw['id'], 0 );
+                continue;
+            }
             $article = QWE_Generator::generate( $kw['keyword'], 'longtail', $kw['category'], $kw['difficulty'] );
             if ( $article ) {
                 $post_id = QWE_Publisher::publish( $article );
@@ -83,6 +88,10 @@ if ( isset( $_GET['action'] ) ) {
             if ( ! $tr ) {
                 $kw = QWE_DB::get_next_keyword();
                 if ( ! $kw ) break;
+                if ( QWE_DB::keyword_already_used( $kw['keyword'] ) ) {
+                    QWE_DB::mark_keyword_used( $kw['id'], 0 );
+                    continue;
+                }
                 $article = QWE_Generator::generate( $kw['keyword'], 'longtail', $kw['category'], $kw['difficulty'] );
                 if ( $article ) {
                     $post_id = QWE_Publisher::publish( $article );

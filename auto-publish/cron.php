@@ -142,6 +142,13 @@ function generate_longtail_article() {
         return false;
     }
 
+    // Check if this keyword was already published (prevents cross-source duplicates).
+    if ( QWE_DB::keyword_already_used( $keyword_data['keyword'] ) ) {
+        log_msg( "Keyword already published: \"{$keyword_data['keyword']}\", skipping" );
+        QWE_DB::mark_keyword_used( $keyword_data['id'], 0 );
+        return false;
+    }
+
     log_msg( "Generating longtail: \"{$keyword_data['keyword']}\" [{$keyword_data['category']}]" );
 
     $article = QWE_Generator::generate(
