@@ -52,7 +52,7 @@ class QWE_Generator {
 
         self::log( "Pass 1 draft generated for: {$keyword}" );
 
-        // Pass 2: E-E-A-T evaluation — if all scores >= 70, use original; otherwise revise.
+        // Pass 2: E-E-A-T evaluation — if all scores >= 80, use original; otherwise revise.
         $final = self::review_and_revise( $article );
         if ( $final ) {
             $article = $final;
@@ -352,8 +352,8 @@ You are a senior content quality reviewer for QWE AI Academy (qwe.edu.pl). Your 
 You will receive a draft article in JSON format. You must:
 
 1. EVALUATE the article — score each E-E-A-T pillar, burstiness, and perplexity
-2. DECIDE: If ALL 6 scores are >= 70 AND no fabricated data AND no banned words → the article PASSES (no revision needed)
-3. If ANY score is < 70 OR fabricated data found OR banned words found → REVISE the article to fix the deficiencies
+2. DECIDE: If ALL 6 scores are >= 80 AND no fabricated data AND no banned words → the article PASSES (no revision needed)
+3. If ANY score is < 80 OR fabricated data found OR banned words found → REVISE the article to fix the deficiencies
 
 === E-E-A-T EVALUATION ===
 
@@ -365,7 +365,7 @@ You will receive a draft article in JSON format. You must:
 
 **T - Trustworthiness (score 0-100)**: Are facts and opinions clearly separated? Are limitations acknowledged? Are ALL numbers in the article publicly verifiable? Replace anything suspicious with qualitative language.
 
-=== BURSTINESS EVALUATION (Target: >= 70) ===
+=== BURSTINESS EVALUATION (Target: >= 80) ===
 
 Burstiness measures sentence length variation. AI text is low-burstiness (uniform sentence lengths). Human text is high-burstiness (chaotic, varied).
 
@@ -373,7 +373,7 @@ How to score:
 - Extract all sentence lengths (word counts) from the article
 - Calculate the coefficient of variation (CV = standard deviation / mean)
 - Convert to percentage: burstiness_score = min(CV * 100, 100)
-- Target: >= 70
+- Target: >= 80
 
 If revision needed, fix by:
 - Breaking long sentences into short punchy ones in some places
@@ -381,7 +381,7 @@ If revision needed, fix by:
 - Adding fragments, short paragraphs, and varied rhythm
 - Avoiding runs of same-length sentences
 
-=== PERPLEXITY EVALUATION (Target: >= 70) ===
+=== PERPLEXITY EVALUATION (Target: >= 80) ===
 
 Perplexity measures word unpredictability. AI text is low-perplexity (predictable word choices). Human text is high-perplexity (unexpected but natural words).
 
@@ -409,7 +409,7 @@ Transitions: Moreover, Furthermore, Additionally, Consequently, Thus, Hence, Non
 
 Respond with valid JSON only. No markdown fences, no extra text.
 
-IF ALL 6 scores >= 70 AND no fabricated data AND no banned words (article PASSES):
+IF ALL 6 scores >= 80 AND no fabricated data AND no banned words (article PASSES):
 {
   "review": {
     "passed": true,
@@ -423,7 +423,7 @@ IF ALL 6 scores >= 70 AND no fabricated data AND no banned words (article PASSES
   }
 }
 
-IF ANY score < 70 OR fabricated data found OR banned words found (article NEEDS REVISION):
+IF ANY score < 80 OR fabricated data found OR banned words found (article NEEDS REVISION):
 {
   "review": {
     "passed": false,
@@ -481,8 +481,8 @@ STEP 1 — EVALUATE:
 - Check for banned words/phrases from the system prompt list
 
 STEP 2 — DECIDE:
-- If ALL 6 scores >= 70 AND no fabricated data AND no banned words → set "passed": true, return review scores only (no article)
-- If ANY score < 70 OR fabricated data found OR banned words found → set "passed": false, revise the article to fix ALL issues, return both review and revised article
+- If ALL 6 scores >= 80 AND no fabricated data AND no banned words → set "passed": true, return review scores only (no article)
+- If ANY score < 80 OR fabricated data found OR banned words found → set "passed": false, revise the article to fix ALL issues, return both review and revised article
 
 REVISION RULES (only if passed = false):
 - Fix ONLY the failing areas — preserve everything that already works well
@@ -500,8 +500,8 @@ PROMPT;
      * Run Pass 2: Evaluate the draft article and revise if needed.
      *
      * Returns:
-     *   - The original draft (unchanged) if all scores >= 70 and no issues found
-     *   - A revised article if any score < 70 or issues were found
+     *   - The original draft (unchanged) if all scores >= 80 and no issues found
+     *   - A revised article if any score < 80 or issues were found
      *   - false if the API call or parsing fails (caller falls back to Pass 1 draft)
      *
      * @param array $draft_article Article data from Pass 1.
@@ -556,7 +556,7 @@ PROMPT;
 
         // Case 1: Article passed all checks — use original draft as-is.
         if ( $passed ) {
-            self::log( 'Pass 2 result: PASSED — all scores >= 70, no issues found, using original article' );
+            self::log( 'Pass 2 result: PASSED — all scores >= 80, no issues found, using original article' );
             if ( ! empty( $r['summary'] ) ) {
                 self::log( 'Pass 2 summary: ' . $r['summary'] );
             }
