@@ -50,6 +50,17 @@ class QWE_Generator {
             return false;
         }
 
+        self::log( "Pass 1 complete for: {$keyword}" );
+
+        // Pass 2: E-E-A-T review, burstiness/perplexity check, and revision.
+        $revised = self::review_and_revise( $article );
+        if ( $revised ) {
+            self::log( "Pass 2 complete — using revised article for: {$keyword}" );
+            $article = $revised;
+        } else {
+            self::log( "Pass 2 failed — using Pass 1 draft for: {$keyword}" );
+        }
+
         $article['keyword'] = $keyword;
         $article['keyword_type'] = $keyword_type;
 
@@ -338,6 +349,239 @@ PROMPT;
             array( $keyword, $type_context, $category_hint, $difficulty, $category_list, $angle, $structure, $tone ),
             $prompt
         );
+    }
+
+    /**
+     * Build the review/revision system prompt (Pass 2).
+     *
+     * This prompt instructs the model to act as a quality reviewer:
+     * 1. Score each E-E-A-T pillar
+     * 2. Measure burstiness (sentence length variation) and perplexity (word unpredictability)
+     * 3. Revise the article to fix any deficiencies
+     * 4. Return the final revised article
+     */
+    private static function build_review_system_prompt() {
+        $prompt = <<<'PROMPT'
+You are a senior content quality reviewer for QWE AI Academy (qwe.edu.pl). Your job is to audit a draft tutorial article and revise it to meet strict quality standards.
+
+=== YOUR TASK ===
+
+You will receive a draft article in JSON format. You must:
+
+1. AUDIT the article against Google E-E-A-T (all 4 pillars)
+2. MEASURE burstiness and perplexity
+3. REVISE the article to fix ALL deficiencies
+4. OUTPUT the final revised article
+
+=== E-E-A-T AUDIT CHECKLIST ===
+
+**E - Experience**: Does the article contain:
+- 2+ genuine first-person testing moments with concrete details?
+- 1+ specific mistake/gotcha the author encountered?
+- 1+ before/after or comparison from personal use (qualitative OK)?
+- Specific verifiable UI details (menu paths, button names, version numbers)?
+- NO fabricated numbers? (If a stat looks invented — e.g., "47% improvement", "saved 2.3 hours" — replace it with qualitative language like "noticeably faster", "saved a good chunk of time")
+
+**E - Expertise**: Does the article:
+- Explain WHY, not just HOW?
+- Use correct technical terminology naturally?
+- Include 1+ insider insight (hidden settings, edge cases, undocumented behaviors)?
+- Only cite verifiable facts (official pricing, published specs, documented limits)?
+
+**A - Authoritativeness**: Does the article:
+- Describe testing approach honestly (no fake "I ran 500 tests" claims)?
+- Reference official documentation or community findings?
+- Include 0-3 inline external links to real, stable URLs?
+
+**T - Trustworthiness**: Does the article:
+- Distinguish facts vs opinions clearly?
+- Acknowledge limitations and drawbacks?
+- NEVER contain fabricated numbers, dates, benchmarks, or statistics?
+- Any number in the article MUST be a publicly verifiable fact. Replace all suspicious/unverifiable numbers with qualitative descriptions.
+
+=== BURSTINESS AUDIT (Target: >70%) ===
+
+Burstiness measures sentence length variation. AI text is low-burstiness (uniform sentence lengths). Human text is high-burstiness (chaotic, varied).
+
+How to score:
+- Extract all sentence lengths (word counts) from the article
+- Calculate the coefficient of variation (CV = standard deviation / mean)
+- Convert to percentage: burstiness_score = min(CV * 100, 100)
+- Target: >70%
+
+If burstiness is below 70%, revise by:
+- Breaking long sentences into short punchy ones in some places
+- Combining short sentences into longer compound ones in others
+- Adding 1-sentence paragraphs, fragments, and varied rhythm
+- Making sure no 3+ consecutive sentences have similar length
+
+=== PERPLEXITY AUDIT (Target: >70%) ===
+
+Perplexity measures word unpredictability. AI text is low-perplexity (predictable word choices). Human text is high-perplexity (unexpected but natural words).
+
+How to score:
+- Check for predictable AI patterns: formulaic transitions, obvious word choices, template structures
+- Check for human signals: contractions, idioms, unexpected word pairings, casual expressions, self-corrections
+- Score 0-100 based on how unpredictable the writing feels
+
+If perplexity is below 70%, revise by:
+- Replacing obvious word choices with natural alternatives (use → reach for, shows → turns out)
+- Adding more contractions (it's, won't, didn't, can't, I've, you'll)
+- Inserting casual micro-expressions (honestly, look, here's the thing, fair warning)
+- Adding 1-2 self-corrections or uncertainty moments
+- Breaking formulaic paragraph structures
+
+=== BANNED PATTERNS (Remove if found) ===
+
+Words: harness, leverage, delve, tapestry, landscape (metaphor), embark, empower, unlock, streamline, revolutionize, cutting-edge, robust, seamless, comprehensive, utilize, facilitate, optimize, innovative, transformative, paradigm, synergy, holistic, myriad
+
+Phrases: "In today's" / "In the ever-evolving" / "It's important to note" / "Whether you're a beginner or" / "In conclusion" / "Let's dive in" / "Game changer" / "Take it to the next level"
+
+Transitions: Moreover, Furthermore, Additionally, Consequently, Thus, Hence, Nonetheless, In essence, Notably, Certainly, Undoubtedly, Essentially
+
+=== OUTPUT FORMAT ===
+
+Respond with valid JSON only. No markdown fences, no extra text:
+{
+  "review": {
+    "experience_score": 0-100,
+    "experience_notes": "what was fixed",
+    "expertise_score": 0-100,
+    "expertise_notes": "what was fixed",
+    "authority_score": 0-100,
+    "authority_notes": "what was fixed",
+    "trust_score": 0-100,
+    "trust_notes": "what was fixed",
+    "burstiness_score": 0-100,
+    "burstiness_notes": "what was fixed",
+    "perplexity_score": 0-100,
+    "perplexity_notes": "what was fixed",
+    "fabricated_data_removed": ["list of fabricated items replaced"],
+    "banned_words_removed": ["list of banned words/phrases replaced"]
+  },
+  "article": {
+    "title": "final title",
+    "slug": "final-slug",
+    "excerpt": "final excerpt",
+    "category": "category-slug",
+    "difficulty": "beginner|intermediate|advanced",
+    "content": "final revised HTML content",
+    "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"]
+  }
+}
+
+=== LANGUAGE ===
+
+The article language must remain LANGUAGE_PLACEHOLDER. All revisions must be in LANGUAGE_PLACEHOLDER. Do not change the language.
+PROMPT;
+
+        return str_replace( 'LANGUAGE_PLACEHOLDER', QWE_CONTENT_LANGUAGE, $prompt );
+    }
+
+    /**
+     * Build the review user prompt (Pass 2).
+     *
+     * @param array $article Draft article from Pass 1.
+     * @return string User prompt containing the draft for review.
+     */
+    private static function build_review_user_prompt( $article ) {
+        $draft_json = json_encode( $article, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT );
+
+        $prompt = <<<'PROMPT'
+Review and revise this draft tutorial article. Follow ALL instructions from the system prompt.
+
+DRAFT ARTICLE:
+{{DRAFT_JSON}}
+
+REQUIREMENTS:
+1. Score each E-E-A-T pillar (0-100). Fix anything below 70.
+2. Score burstiness (sentence variation). Must be >70%. If not, rewrite sentences to vary length aggressively.
+3. Score perplexity (word unpredictability). Must be >70%. If not, replace predictable words, add contractions, add casual expressions.
+4. Remove ALL fabricated numbers/stats — replace with qualitative language.
+5. Remove ALL banned words/phrases — replace with natural alternatives.
+6. Keep the same topic, structure, and teaching content — only improve quality.
+7. The revised article must be 1500-2500 words.
+8. Output valid JSON only.
+PROMPT;
+
+        return str_replace( '{{DRAFT_JSON}}', $draft_json, $prompt );
+    }
+
+    /**
+     * Run Pass 2: Review and revise the draft article.
+     *
+     * @param array $draft_article Article data from Pass 1.
+     * @return array|false Revised article data or false on failure.
+     */
+    private static function review_and_revise( $draft_article ) {
+        $system_prompt = self::build_review_system_prompt();
+        $user_prompt = self::build_review_user_prompt( $draft_article );
+
+        self::log( 'Pass 2: Sending draft for E-E-A-T review and revision' );
+
+        $response = self::call_claude_api( $system_prompt, $user_prompt );
+
+        if ( ! $response ) {
+            self::log( 'Pass 2 API call failed — using Pass 1 draft as-is' );
+            return false;
+        }
+
+        // Parse the review response.
+        $response = trim( $response );
+        $response = preg_replace( '/^```json\s*/i', '', $response );
+        $response = preg_replace( '/\s*```$/', '', $response );
+
+        $result = json_decode( $response, true );
+
+        if ( json_last_error() !== JSON_ERROR_NONE ) {
+            self::log( 'Pass 2 JSON parse error: ' . json_last_error_msg() );
+            self::log( 'Pass 2 raw (first 500): ' . substr( $response, 0, 500 ) );
+            return false;
+        }
+
+        // Log the review scores.
+        if ( isset( $result['review'] ) ) {
+            $r = $result['review'];
+            self::log( sprintf(
+                'Pass 2 scores — Experience: %s, Expertise: %s, Authority: %s, Trust: %s, Burstiness: %s, Perplexity: %s',
+                $r['experience_score'] ?? '?',
+                $r['expertise_score'] ?? '?',
+                $r['authority_score'] ?? '?',
+                $r['trust_score'] ?? '?',
+                $r['burstiness_score'] ?? '?',
+                $r['perplexity_score'] ?? '?'
+            ) );
+
+            if ( ! empty( $r['fabricated_data_removed'] ) ) {
+                self::log( 'Fabricated data removed: ' . implode( ', ', $r['fabricated_data_removed'] ) );
+            }
+            if ( ! empty( $r['banned_words_removed'] ) ) {
+                self::log( 'Banned words removed: ' . implode( ', ', $r['banned_words_removed'] ) );
+            }
+        }
+
+        // Extract the revised article.
+        if ( ! isset( $result['article'] ) ) {
+            self::log( 'Pass 2 response missing "article" key' );
+            return false;
+        }
+
+        $revised = $result['article'];
+
+        // Validate required fields.
+        $required = array( 'title', 'slug', 'excerpt', 'category', 'difficulty', 'content' );
+        foreach ( $required as $field ) {
+            if ( empty( $revised[ $field ] ) ) {
+                self::log( "Pass 2 missing required field: {$field}" );
+                return false;
+            }
+        }
+
+        if ( ! isset( $revised['tags'] ) || ! is_array( $revised['tags'] ) ) {
+            $revised['tags'] = $draft_article['tags'] ?? array();
+        }
+
+        return $revised;
     }
 
     /**
