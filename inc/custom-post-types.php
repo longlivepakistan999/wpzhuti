@@ -154,6 +154,135 @@ function qwe_save_tutorial_meta( $post_id ) {
 add_action( 'save_post_tutorial', 'qwe_save_tutorial_meta' );
 
 /**
+ * Register Friend Link post type.
+ */
+function qwe_register_friend_link_cpt() {
+    $labels = array(
+        'name'               => _x( 'Friend Links', 'Post type general name', 'qwe-developer-flavor' ),
+        'singular_name'      => _x( 'Friend Link', 'Post type singular name', 'qwe-developer-flavor' ),
+        'menu_name'          => _x( 'Friend Links', 'Admin Menu text', 'qwe-developer-flavor' ),
+        'add_new'            => __( 'Add New', 'qwe-developer-flavor' ),
+        'add_new_item'       => __( 'Add New Friend Link', 'qwe-developer-flavor' ),
+        'new_item'           => __( 'New Friend Link', 'qwe-developer-flavor' ),
+        'edit_item'          => __( 'Edit Friend Link', 'qwe-developer-flavor' ),
+        'view_item'          => __( 'View Friend Link', 'qwe-developer-flavor' ),
+        'all_items'          => __( 'All Friend Links', 'qwe-developer-flavor' ),
+        'search_items'       => __( 'Search Friend Links', 'qwe-developer-flavor' ),
+        'not_found'          => __( 'No friend links found.', 'qwe-developer-flavor' ),
+        'not_found_in_trash' => __( 'No friend links found in Trash.', 'qwe-developer-flavor' ),
+    );
+
+    register_post_type( 'friend_link', array(
+        'labels'             => $labels,
+        'public'             => false,
+        'show_ui'            => true,
+        'show_in_menu'       => true,
+        'show_in_rest'       => true,
+        'capability_type'    => 'post',
+        'has_archive'        => false,
+        'hierarchical'       => false,
+        'menu_position'      => 25,
+        'menu_icon'          => 'dashicons-admin-links',
+        'supports'           => array( 'title' ),
+    ) );
+}
+add_action( 'init', 'qwe_register_friend_link_cpt' );
+
+/**
+ * Register friend link meta box for URL and sort order.
+ */
+function qwe_add_friend_link_meta_boxes() {
+    add_meta_box(
+        'qwe_friend_link_options',
+        __( 'Link Settings', 'qwe-developer-flavor' ),
+        'qwe_friend_link_options_callback',
+        'friend_link',
+        'normal',
+        'high'
+    );
+}
+add_action( 'add_meta_boxes', 'qwe_add_friend_link_meta_boxes' );
+
+/**
+ * Friend link meta box callback.
+ */
+function qwe_friend_link_options_callback( $post ) {
+    wp_nonce_field( 'qwe_friend_link_options', 'qwe_friend_link_nonce' );
+
+    $url   = get_post_meta( $post->ID, '_qwe_friend_url', true );
+    $order = get_post_meta( $post->ID, '_qwe_friend_order', true );
+    ?>
+    <table class="form-table">
+        <tr>
+            <th><label for="qwe_friend_url"><?php esc_html_e( 'Website URL', 'qwe-developer-flavor' ); ?></label></th>
+            <td><input type="url" id="qwe_friend_url" name="qwe_friend_url" value="<?php echo esc_url( $url ); ?>" class="large-text" placeholder="https://example.com"></td>
+        </tr>
+        <tr>
+            <th><label for="qwe_friend_order"><?php esc_html_e( 'Sort Order', 'qwe-developer-flavor' ); ?></label></th>
+            <td><input type="number" id="qwe_friend_order" name="qwe_friend_order" value="<?php echo esc_attr( $order ); ?>" class="small-text" placeholder="0">
+            <p class="description"><?php esc_html_e( 'Smaller number = higher priority.', 'qwe-developer-flavor' ); ?></p></td>
+        </tr>
+    </table>
+    <?php
+}
+
+/**
+ * Save friend link meta box data.
+ */
+function qwe_save_friend_link_meta( $post_id ) {
+    if ( ! isset( $_POST['qwe_friend_link_nonce'] ) ) {
+        return;
+    }
+    if ( ! wp_verify_nonce( $_POST['qwe_friend_link_nonce'], 'qwe_friend_link_options' ) ) {
+        return;
+    }
+    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+        return;
+    }
+    if ( ! current_user_can( 'edit_post', $post_id ) ) {
+        return;
+    }
+
+    if ( isset( $_POST['qwe_friend_url'] ) ) {
+        update_post_meta( $post_id, '_qwe_friend_url', esc_url_raw( $_POST['qwe_friend_url'] ) );
+    }
+    if ( isset( $_POST['qwe_friend_order'] ) ) {
+        update_post_meta( $post_id, '_qwe_friend_order', intval( $_POST['qwe_friend_order'] ) );
+    }
+}
+add_action( 'save_post_friend_link', 'qwe_save_friend_link_meta' );
+
+/**
+ * Add custom columns to friend link admin list.
+ */
+function qwe_friend_link_columns( $columns ) {
+    $new = array();
+    foreach ( $columns as $key => $value ) {
+        $new[ $key ] = $value;
+        if ( 'title' === $key ) {
+            $new['friend_url']   = __( 'URL', 'qwe-developer-flavor' );
+            $new['friend_order'] = __( 'Order', 'qwe-developer-flavor' );
+        }
+    }
+    unset( $new['date'] );
+    return $new;
+}
+add_filter( 'manage_friend_link_posts_columns', 'qwe_friend_link_columns' );
+
+/**
+ * Populate custom columns for friend link admin list.
+ */
+function qwe_friend_link_column_content( $column, $post_id ) {
+    if ( 'friend_url' === $column ) {
+        $url = get_post_meta( $post_id, '_qwe_friend_url', true );
+        echo $url ? '<a href="' . esc_url( $url ) . '" target="_blank">' . esc_html( $url ) . '</a>' : '—';
+    } elseif ( 'friend_order' === $column ) {
+        echo esc_html( get_post_meta( $post_id, '_qwe_friend_order', true ) ?: '0' );
+    }
+}
+add_action( 'manage_friend_link_posts_custom_column', 'qwe_friend_link_column_content', 10, 2 );
+
+/**
  * Flush rewrite rules on theme activation.
  */
 function qwe_rewrite_flush() {

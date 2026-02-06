@@ -60,9 +60,8 @@ function qwe_theme_setup() {
     add_image_size( 'qwe-tutorial-hero', 1200, 500, true );
 
     register_nav_menus( array(
-        'primary'      => esc_html__( 'Primary Menu', 'qwe-developer-flavor' ),
-        'footer'       => esc_html__( 'Footer Menu', 'qwe-developer-flavor' ),
-        'friend-links' => esc_html__( 'Friend Links', 'qwe-developer-flavor' ),
+        'primary' => esc_html__( 'Primary Menu', 'qwe-developer-flavor' ),
+        'footer'  => esc_html__( 'Footer Menu', 'qwe-developer-flavor' ),
     ) );
 }
 add_action( 'after_setup_theme', 'qwe_theme_setup' );
