@@ -273,28 +273,9 @@ h6 { font-size: var(--text-base); }
     border-radius: var(--radius-full);
 }
 
-/* Dropdown parent indicator */
+/* Dropdown parent hover */
 .main-navigation .menu-item-has-children > a {
-    padding-right: var(--space-7);
     position: relative;
-}
-
-.main-navigation .menu-item-has-children > a::after {
-    content: '';
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 0;
-    height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid currentColor;
-    transition: transform var(--transition-fast);
-}
-
-.main-navigation .menu-item-has-children:hover > a::after {
-    transform: translateY(-50%) rotate(180deg);
 }
 
 /* Dropdown sub-menu */
@@ -1179,14 +1160,6 @@ h6 { font-size: var(--text-base); }
     .main-navigation .sub-menu a {
         font-size: var(--text-sm);
         padding: var(--space-2) var(--space-3);
-    }
-
-    .main-navigation .menu-item-has-children > a::after {
-        right: 12px;
-    }
-
-    .main-navigation .menu-item-has-children.is-open > a::after {
-        transform: translateY(-50%) rotate(180deg);
     }
 
     .header-search__input {
