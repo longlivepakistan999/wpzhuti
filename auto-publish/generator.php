@@ -153,13 +153,15 @@ Each article must contain at least 3-5 genuinely useful information points that 
 
 === WRITING STYLE ===
 
-Write like Ars Technica — professional, clear, warm but not academic. You're an educator writing for smart people.
+Write casually — like a smart friend explaining something over coffee. Not academic, not corporate, not textbook. Short paragraphs. Conversational.
 
 1. Always use contractions (it's, won't, can't, I've, you'll). Tutorial, not thesis.
-2. Vary sentence length naturally. Long explanations, then a short punch. Fragments work.
-3. Each section should differ in format — steps, paragraphs, code blocks, comparisons. Vary section lengths.
-4. Use precise words over generic ones. "The response took 3 seconds" beats "the response was fast" — IF 3 seconds is real.
-5. Don't pad. Every paragraph must teach something or move the reader forward.
+2. Vary sentence length naturally. Long explanations, then a short punch. Fragments work. One-word sentences work.
+3. Keep paragraphs SHORT — 1-3 sentences each is ideal. Long paragraphs are a wall of text. Break them up.
+4. Each section should differ in format — steps, paragraphs, code blocks, comparisons. Vary section lengths.
+5. Use precise words over generic ones. "The response took 3 seconds" beats "the response was fast" — IF 3 seconds is real.
+6. Don't pad. Every paragraph must teach something or move the reader forward.
+7. Shorter articles are better. Say what you need to say and stop. 800 words that are all useful > 2000 words of padding.
 
 === INFORMATION DENSITY — BREATHING ROOM (CRITICAL) ===
 
@@ -217,7 +219,7 @@ Do NOT give all three the same rhythm (answer → condition → advice). Break t
 - H2 for main sections, H3 for sub-steps
 - Mention 2-3 related topics naturally (internal linking opportunities)
 - End with 3 FAQ Q&As (<h3> questions, <p> answers)
-- Under 2000 words (absolute max 3000). Don't pad.
+- 500-2500 words. Shorter is fine — 800-1200 words is the sweet spot. Don't pad.
 
 === BANNED PATTERNS ===
 
@@ -329,7 +331,7 @@ REQUIREMENTS:
 - Label sources honestly in the text: "根据官方文档", "社区用户反馈", "测试表明" etc.
 - Include 3-5 unique insights readers can't easily find elsewhere (hidden settings, pricing gotchas, undocumented behaviors, real comparison data)
 - Keyword in first 100 words, in one H2, and in the excerpt
-- Under 2000 words, absolute max 3000
+- 500-2500 words. 800-1200 is the sweet spot. Don't pad
 - 1-3 inline links to official docs (only if URL is real)
 - 1 <blockquote> pro tip
 - 3 FAQ Q&As at the end (<h3> questions, <p> answers)
@@ -367,8 +369,9 @@ You will receive a draft article with a "facts" array. You must:
 2. EVALUATE quality: E-E-A-T (4 pillars), burstiness, perplexity — score each 0-100
 3. CHECK for banned words/phrases
 4. CHECK AI FINGERPRINTS: Score the 4 fingerprint dimensions (FP1-FP4, each 0-100)
-5. AIGC SCAN: Read each paragraph, estimate overall AIGC rate (0-100%). Target: ≤ 50%. This is a HARD requirement.
-6. DECIDE: All 10 quality scores >= 80 AND aigc_rate <= 50 AND no unverified data AND no banned words → PASSES. Otherwise → REVISE.
+5. SCAN GENAI PHRASES: Find all overused GenAI phrases (5 categories in system instructions). Count them, replace every one.
+6. AIGC SCAN: Read each paragraph, estimate overall AIGC rate (0-100%). Target: ≤ 50%. This is a HARD requirement.
+7. DECIDE: All 10 quality scores >= 80 AND aigc_rate <= 50 AND genai_phrases_found == 0 (after replacement) AND no unverified data AND no banned words → PASSES. Otherwise → REVISE.
 
 === FACT VERIFICATION (MOST IMPORTANT) ===
 
@@ -476,7 +479,93 @@ REWRITE TECHNIQUES (apply to AI-flagged paragraphs):
 
 IMPORTANT: Do NOT rewrite every paragraph. Only rewrite the AI-flagged ones. Preserve paragraphs that already read as human-written. Over-rewriting makes the article feel inconsistent.
 
-=== BANNED PATTERNS ===
+=== GENAI OVERUSED PHRASES (SCAN & REPLACE) ===
+
+GenAI models statistically overuse certain phrases learned during training. These phrases appear 10-100x more frequently in AI text than in human text. Scan the article for ALL of these, count them, and replace every instance found.
+
+CATEGORY 1 — FILLER HEDGES (sound cautious/academic, humans rarely write this way):
+- "It's worth noting that" → delete, or just state the fact directly
+- "It's worth mentioning that" → delete
+- "It should be noted that" → delete
+- "It bears mentioning" → delete
+- "One thing to keep in mind" → "Watch out for this:" or just state it
+- "What's particularly interesting is" → "The interesting part:" or just start with the fact
+- "What makes this stand out" → just describe why
+- "Perhaps most importantly" → "The big one:" or just state it
+- "Interestingly enough" → delete, or "Funny thing:" if actually surprising
+- "It goes without saying" → delete entirely (if it goes without saying, don't say it)
+- "Needless to say" → delete entirely
+- "As you might expect" → delete, or just state the fact
+
+CATEGORY 2 — OVERUSED VERBS (GenAI loves these, humans use more specific verbs):
+- "navigate" (metaphor) → "figure out", "work through", "handle", or be specific
+- "explore" (as in "let's explore") → "look at", "try", "test", "check out"
+- "ensure" → "make sure", "check that", or be specific about what to do
+- "enhance" → "improve", "speed up", "make better", or say what actually changes
+- "boost" → say the specific improvement: "cuts load time from 3s to 1s"
+- "foster" → "build", "create", "encourage"
+- "cater to" → "work for", "fit", "help"
+- "tailor" (verb) → "customize", "adjust", "set up for"
+- "underscore" → "show", "prove", "highlight" (or just delete — the fact speaks for itself)
+- "coupled with" → "plus", "along with", "and"
+- "spearhead" → "lead", "start", "run"
+- "pave the way" → "make it possible", "open the door" or delete
+
+CATEGORY 3 — OVERUSED ADJECTIVES/ADVERBS (vague intensifiers humans don't overuse):
+- "crucial" → "important", "key", or delete (let context convey importance)
+- "vital" → "important", "needed", or delete
+- "pivotal" → "key", "big", or describe why
+- "remarkable" → say what's actually remarkable: "3x faster" beats "remarkably fast"
+- "notable" → delete or be specific
+- "significant" / "significantly" → use a number: "a 40% drop" not "a significant drop"
+- "substantial" / "substantially" → use a number or delete
+- "arguably" → "probably", "in most cases", or commit to the claim
+- "incredibly" → delete or use actual numbers
+- "exceptionally" → delete or use actual numbers
+- "particularly" → delete or restructure: "X is good for Y especially" → "X works best for Y"
+- "generally speaking" → "usually", "most of the time", or delete
+- "for the most part" → "mostly", "usually"
+
+CATEGORY 4 — STRUCTURAL CLICHÉS (GenAI-favorite sentence templates):
+- "Whether you're a X or a Y, ..." → delete, just address the reader directly
+- "From X to Y, ..." → be specific about one thing, not vague about the range
+- "Not only X, but also Y" → simplify: "X. And Y too." or "X, plus Y"
+- "While X, Y" at paragraph start → too many of these = AI signal. Limit to 1 per article
+- "This is where X comes in" → just start talking about X
+- "This is particularly true when" → "Especially when" or just describe the scenario
+- "The beauty of X is" → describe the actual benefit
+- "When it comes to X" → "For X" or just start the sentence about X
+- "In terms of" → "For", or restructure the sentence
+- "At the end of the day" → "Ultimately", or just state the conclusion
+- "It all comes down to" → "The key is" or just state it
+- "On the flip side" → "But", "The downside:", or just state the contrast
+- "That said" / "That being said" → "But", or just start the contrast. Limit to 1 per article
+- "With that in mind" → delete, just continue
+- "Here's the thing" → ok once per article, but never twice
+- "The reality is" → delete, just state the reality
+- "The good news is" → ok once per article, never twice
+
+CATEGORY 5 — OVERUSED NOUNS (abstract nouns humans avoid in casual tech writing):
+- "realm" → "area", "world", "space" or be specific
+- "ecosystem" → "tools", "platform", "setup", or be specific
+- "landscape" → name the actual things: "the market" or just list the competitors
+- "framework" (metaphor) → "approach", "method", "system"
+- "journey" → "process", "experience", or describe the actual steps
+- "endeavor" → "project", "work", "effort"
+- "plethora" → "a lot of", "dozens of", or a real number
+- "multitude" → "many", "a lot of", or a real number
+- "implications" → say what the actual effect is
+- "nuances" → describe the specific nuance instead of saying the word
+
+REPLACEMENT RULES:
+1. Count total GenAI phrases found in the article → report as "genai_phrases_found"
+2. Replace every instance. Do NOT leave any.
+3. For each replacement, choose the most natural alternative that fits the sentence context.
+4. If a replacement sounds awkward, restructure the entire sentence instead.
+5. Some phrases (marked "delete") should simply be removed — the sentence is usually stronger without them.
+6. Track what you replaced → report as "genai_phrases_replaced" array
+
+=== BANNED PATTERNS (ZERO TOLERANCE) ===
 
 Words: harness, leverage, delve, tapestry, landscape (metaphor), embark, empower, unlock, streamline, revolutionize, cutting-edge, robust, seamless, comprehensive, utilize, facilitate, optimize, innovative, transformative, paradigm, synergy, holistic, myriad
 
@@ -488,7 +577,7 @@ Transitions: Moreover / Furthermore / Additionally / Consequently / Thus / Hence
 
 Respond with valid JSON only.
 
-IF PASSES (all 10 quality scores >= 80, aigc_rate <= 50, no issues):
+IF PASSES (all 10 quality scores >= 80, aigc_rate <= 50, 0 GenAI phrases remain, no issues):
 {
   "review": {
     "passed": true,
@@ -505,12 +594,13 @@ IF PASSES (all 10 quality scores >= 80, aigc_rate <= 50, no issues):
     "aigc_rate": 0-100,
     "aigc_flagged_paragraphs": 0,
     "aigc_total_paragraphs": 0,
+    "genai_phrases_found": 0,
     "facts_verified": true,
     "summary": "Brief explanation"
   }
 }
 
-IF NEEDS REVISION (any quality score < 80, OR aigc_rate > 50, OR issues found):
+IF NEEDS REVISION (any quality score < 80, OR aigc_rate > 50, OR GenAI phrases found, OR issues):
 {
   "review": {
     "passed": false,
@@ -528,6 +618,8 @@ IF NEEDS REVISION (any quality score < 80, OR aigc_rate > 50, OR issues found):
     "aigc_flagged_paragraphs": 5,
     "aigc_total_paragraphs": 12,
     "aigc_rewrites": ["para 3: broke cadence + added specificity", "para 7: front-loaded key point"],
+    "genai_phrases_found": 8,
+    "genai_phrases_replaced": ["It's worth noting that → (deleted)", "navigate → figure out", "crucial → key"],
     "unverified_claims": ["claims in article not backed by facts array"],
     "fabricated_data_removed": ["fabricated items replaced"],
     "banned_words_removed": ["banned words replaced"],
@@ -587,25 +679,32 @@ STEP 3 — CHECK AI FINGERPRINTS (score each 0-100):
 - FP3: Transition perfection — are all section transitions smooth logical bridges, or is there a natural mix of abrupt jumps and casual connectors?
 - FP4: FAQ structure uniformity — do all 3 FAQ answers follow the same rhythm, or do they have different lengths and structures?
 
-STEP 4 — AIGC RATE SCAN (HARD LIMIT ≤ 50%):
+STEP 4 — SCAN GENAI OVERUSED PHRASES:
+- Scan the entire article for overused GenAI phrases (5 categories in system instructions: filler hedges, overused verbs, overused adjectives/adverbs, structural clichés, overused nouns).
+- Count total instances found → "genai_phrases_found"
+- Replace EVERY instance using the replacement rules from system instructions. List each replacement in "genai_phrases_replaced".
+- Any article with genai_phrases_found > 0 must be revised (phrases must be replaced).
+
+STEP 5 — AIGC RATE SCAN (HARD LIMIT ≤ 50%):
 - Read each paragraph. Flag it as "AI-written" if it has 2+ signals: uniform cadence, textbook structure, hedging phrases, listing patterns, vague quantifiers, mirror structure, balanced comparisons, summary repetition, or uniform sentence length.
 - Calculate: aigc_rate = (flagged paragraphs / total paragraphs) * 100
-- If aigc_rate > 50%: article MUST be revised. Rewrite only the flagged paragraphs using techniques from system instructions (break cadence, inject specificity, front-load, add human texture, vary openings, kill balanced structures, use callbacks).
+- If aigc_rate > 50%: article MUST be revised. Rewrite only the flagged paragraphs using techniques from system instructions.
 
-STEP 5 — DECIDE:
-- ALL 10 quality scores >= 80 AND aigc_rate <= 50 AND facts verified AND no banned words → "passed": true
+STEP 6 — DECIDE:
+- ALL 10 quality scores >= 80 AND aigc_rate <= 50 AND genai_phrases_found == 0 (after replacement) AND facts verified AND no banned words → "passed": true
 - ANY issue found → "passed": false, revise the article
 
 REVISION RULES (only if passed = false):
 - Remove or replace any claim not backed by the facts array
 - Fix failing quality areas — preserve what works
 - Replace banned words with natural alternatives
+- Replace ALL GenAI overused phrases using the 5-category dictionary from system instructions
 - FP1 fix: Insert 1-2 short breathing paragraphs between dense sections
 - FP2 fix: Rewrite citations using at least 3 different sentence structures
 - FP3 fix: Make 2-3 section transitions abrupt, remove "now that we covered X" bridges
 - FP4 fix: Give each FAQ answer a different length and structure
 - AIGC fix: Rewrite ONLY the AI-flagged paragraphs. Do NOT touch human-sounding paragraphs. Use the 7 rewrite techniques from system instructions. List each rewrite in "aigc_rewrites".
-- Under 2000 words (max 3000)
+- 500-2500 words (800-1200 sweet spot)
 - Output valid JSON only
 PROMPT;
 
@@ -695,6 +794,10 @@ PROMPT;
             $r['aigc_flagged_paragraphs'] ?? '?',
             $r['aigc_total_paragraphs'] ?? '?'
         ) );
+        self::log( sprintf(
+            'Pass 2 GenAI phrases found: %s',
+            $r['genai_phrases_found'] ?? '?'
+        ) );
 
         $passed = ! empty( $r['passed'] );
 
@@ -727,6 +830,9 @@ PROMPT;
         }
         if ( ! empty( $r['aigc_rewrites'] ) ) {
             self::log( 'AIGC rewrites (' . count( $r['aigc_rewrites'] ) . '): ' . implode( '; ', $r['aigc_rewrites'] ) );
+        }
+        if ( ! empty( $r['genai_phrases_replaced'] ) ) {
+            self::log( 'GenAI phrases replaced (' . count( $r['genai_phrases_replaced'] ) . '): ' . implode( '; ', $r['genai_phrases_replaced'] ) );
         }
 
         // Extract the revised article.
