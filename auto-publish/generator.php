@@ -367,7 +367,8 @@ You will receive a draft article with a "facts" array. You must:
 2. EVALUATE quality: E-E-A-T (4 pillars), burstiness, perplexity — score each 0-100
 3. CHECK for banned words/phrases
 4. CHECK AI FINGERPRINTS: Score the 4 fingerprint dimensions (FP1-FP4, each 0-100)
-5. DECIDE: All 10 scores >= 80 AND no unverified data AND no banned words → PASSES. Otherwise → REVISE.
+5. AIGC SCAN: Read each paragraph, estimate overall AIGC rate (0-100%). Target: ≤ 50%. This is a HARD requirement.
+6. DECIDE: All 10 quality scores >= 80 AND aigc_rate <= 50 AND no unverified data AND no banned words → PASSES. Otherwise → REVISE.
 
 === FACT VERIFICATION (MOST IMPORTANT) ===
 
@@ -425,6 +426,56 @@ Read the 3 FAQ answers. Do they all follow the same rhythm?
 - Score >= 80: One answer is very short (2-3 sentences, done), one is medium with a scenario, one is longer with nuance. Different rhythms.
 FIX: Rewrite FAQ answers with deliberately different lengths and structures. Make one blunt and short, one include a specific example, one address a misconception.
 
+=== AIGC RATE SCAN (HARD LIMIT: ≤ 50%) ===
+
+This is a MANDATORY gate. If aigc_rate > 50%, the article MUST be revised regardless of other scores.
+
+HOW TO ESTIMATE AIGC RATE:
+Read the article paragraph by paragraph. For each paragraph, ask: "Would an AI detection tool flag this as AI-written?" A paragraph is AI-flagged if it has 2+ of these signals:
+- Every sentence in the paragraph follows subject-verb-object in the same cadence
+- The paragraph opens with a topic sentence, then 2-3 supporting sentences, then a concluding remark (textbook essay structure)
+- Hedging phrases: "It's worth noting that", "One thing to keep in mind", "What makes this particularly interesting"
+- Listing pattern: "First... Second... Third..." or "One... Another... Finally..."
+- Vague quantifiers: "significantly", "substantially", "considerable", "a number of", "a variety of"
+- Mirror structure: consecutive sentences starting with the same word or phrase
+- Overly balanced comparisons: "While X has A, Y offers B. However, X also provides C, whereas Y includes D."
+- Summary sentences that repeat what was just said: "In short, ...", "Put simply, ..."
+- Uniform sentence length (all sentences within 3-5 words of each other)
+
+AIGC RATE = (number of AI-flagged paragraphs / total paragraphs) * 100
+
+REWRITE TECHNIQUES (apply to AI-flagged paragraphs):
+
+1. BREAK THE CADENCE — Rewrite the sentence rhythm. Split a long sentence into two fragments. Merge two short ones. Start a sentence with "But", "And", "So", or a prepositional phrase. Interrupt mid-thought with a dash.
+   BEFORE: "Claude 3.5 Sonnet offers a 200K context window, which is significantly larger than its predecessor. This allows users to process much longer documents in a single request."
+   AFTER: "200K context window. That's what Claude 3.5 Sonnet gives you — roughly 4x what the previous version handled. Enough to throw an entire codebase at it and still have room for a detailed prompt."
+
+2. INJECT SPECIFICITY — Replace vague qualifiers with concrete details or drop them entirely.
+   BEFORE: "The performance improvement is quite significant compared to the previous version."
+   AFTER: "Responses come back in about 2 seconds now. The old model? More like 8."
+
+3. FRONT-LOAD THE INTERESTING PART — Don't build up to the point. Lead with it.
+   BEFORE: "When comparing the two tools, it becomes clear that Tool A has several advantages in terms of speed and accuracy."
+   AFTER: "Tool A is faster. Not by a little — 3x faster on the benchmark that matters most."
+
+4. ADD HUMAN TEXTURE — Insert a short reaction, a caveat, a "hmm" moment.
+   BEFORE: "The free tier provides 100 messages per day, which should be sufficient for most casual users."
+   AFTER: "100 messages a day on the free tier. Sounds like a lot, but you'll burn through that in one debugging session."
+
+5. VARY PARAGRAPH OPENINGS — Never start 2 consecutive paragraphs the same way. Mix: questions, statements, fragments, numbers, quotes, imperatives.
+   BAD: "The API supports... The API also includes... The API provides..."
+   GOOD: "The API supports... Pricing? Straightforward at... One catch, though: the rate limit..."
+
+6. KILL BALANCED STRUCTURES — Real writers don't give equal weight to everything. Make one point dominant, compress others.
+   BEFORE: "While Option A provides better speed, Option B offers superior accuracy. Option A costs less, but Option B includes more features."
+   AFTER: "Option A is faster and cheaper. Option B is more accurate. For most people? A. The speed difference alone makes the decision."
+
+7. USE INCOMPLETE THOUGHTS & CALLBACKS — Reference something said earlier, leave a thought slightly unfinished, or add a parenthetical that breaks rhythm.
+   "Remember that 200K context limit from earlier? Here's where it actually matters."
+   "The setup takes about 5 minutes (assuming your API key works on the first try — mine didn't)."
+
+IMPORTANT: Do NOT rewrite every paragraph. Only rewrite the AI-flagged ones. Preserve paragraphs that already read as human-written. Over-rewriting makes the article feel inconsistent.
+
 === BANNED PATTERNS ===
 
 Words: harness, leverage, delve, tapestry, landscape (metaphor), embark, empower, unlock, streamline, revolutionize, cutting-edge, robust, seamless, comprehensive, utilize, facilitate, optimize, innovative, transformative, paradigm, synergy, holistic, myriad
@@ -437,7 +488,7 @@ Transitions: Moreover / Furthermore / Additionally / Consequently / Thus / Hence
 
 Respond with valid JSON only.
 
-IF PASSES (all 10 scores >= 80, no issues):
+IF PASSES (all 10 quality scores >= 80, aigc_rate <= 50, no issues):
 {
   "review": {
     "passed": true,
@@ -451,12 +502,15 @@ IF PASSES (all 10 scores >= 80, no issues):
     "fp2_citation_score": 0-100,
     "fp3_transition_score": 0-100,
     "fp4_faq_score": 0-100,
+    "aigc_rate": 0-100,
+    "aigc_flagged_paragraphs": 0,
+    "aigc_total_paragraphs": 0,
     "facts_verified": true,
     "summary": "Brief explanation"
   }
 }
 
-IF NEEDS REVISION (any < 80 or issues found):
+IF NEEDS REVISION (any quality score < 80, OR aigc_rate > 50, OR issues found):
 {
   "review": {
     "passed": false,
@@ -470,6 +524,10 @@ IF NEEDS REVISION (any < 80 or issues found):
     "fp2_citation_score": 0-100,
     "fp3_transition_score": 0-100,
     "fp4_faq_score": 0-100,
+    "aigc_rate": 0-100,
+    "aigc_flagged_paragraphs": 5,
+    "aigc_total_paragraphs": 12,
+    "aigc_rewrites": ["para 3: broke cadence + added specificity", "para 7: front-loaded key point"],
     "unverified_claims": ["claims in article not backed by facts array"],
     "fabricated_data_removed": ["fabricated items replaced"],
     "banned_words_removed": ["banned words replaced"],
@@ -529,8 +587,13 @@ STEP 3 — CHECK AI FINGERPRINTS (score each 0-100):
 - FP3: Transition perfection — are all section transitions smooth logical bridges, or is there a natural mix of abrupt jumps and casual connectors?
 - FP4: FAQ structure uniformity — do all 3 FAQ answers follow the same rhythm, or do they have different lengths and structures?
 
-STEP 4 — DECIDE:
-- ALL 10 scores >= 80 AND facts verified AND no banned words → "passed": true (no article needed)
+STEP 4 — AIGC RATE SCAN (HARD LIMIT ≤ 50%):
+- Read each paragraph. Flag it as "AI-written" if it has 2+ signals: uniform cadence, textbook structure, hedging phrases, listing patterns, vague quantifiers, mirror structure, balanced comparisons, summary repetition, or uniform sentence length.
+- Calculate: aigc_rate = (flagged paragraphs / total paragraphs) * 100
+- If aigc_rate > 50%: article MUST be revised. Rewrite only the flagged paragraphs using techniques from system instructions (break cadence, inject specificity, front-load, add human texture, vary openings, kill balanced structures, use callbacks).
+
+STEP 5 — DECIDE:
+- ALL 10 quality scores >= 80 AND aigc_rate <= 50 AND facts verified AND no banned words → "passed": true
 - ANY issue found → "passed": false, revise the article
 
 REVISION RULES (only if passed = false):
@@ -541,6 +604,7 @@ REVISION RULES (only if passed = false):
 - FP2 fix: Rewrite citations using at least 3 different sentence structures
 - FP3 fix: Make 2-3 section transitions abrupt, remove "now that we covered X" bridges
 - FP4 fix: Give each FAQ answer a different length and structure
+- AIGC fix: Rewrite ONLY the AI-flagged paragraphs. Do NOT touch human-sounding paragraphs. Use the 7 rewrite techniques from system instructions. List each rewrite in "aigc_rewrites".
 - Under 2000 words (max 3000)
 - Output valid JSON only
 PROMPT;
@@ -625,6 +689,12 @@ PROMPT;
             $r['fp3_transition_score'] ?? '?',
             $r['fp4_faq_score'] ?? '?'
         ) );
+        self::log( sprintf(
+            'Pass 2 AIGC — Rate: %s%%, Flagged: %s/%s paragraphs',
+            $r['aigc_rate'] ?? '?',
+            $r['aigc_flagged_paragraphs'] ?? '?',
+            $r['aigc_total_paragraphs'] ?? '?'
+        ) );
 
         $passed = ! empty( $r['passed'] );
 
@@ -654,6 +724,9 @@ PROMPT;
         }
         if ( ! empty( $r['fingerprint_fixes'] ) ) {
             self::log( 'Fingerprint fixes: ' . implode( '; ', $r['fingerprint_fixes'] ) );
+        }
+        if ( ! empty( $r['aigc_rewrites'] ) ) {
+            self::log( 'AIGC rewrites (' . count( $r['aigc_rewrites'] ) . '): ' . implode( '; ', $r['aigc_rewrites'] ) );
         }
 
         // Extract the revised article.
