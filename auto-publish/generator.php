@@ -579,6 +579,21 @@ PROMPT;
 
         $result = json_decode( $response, true );
 
+        // Fallback: extract JSON object from surrounding text if direct parse fails.
+        if ( json_last_error() !== JSON_ERROR_NONE ) {
+            $json_start = strpos( $response, '{' );
+            $json_end   = strrpos( $response, '}' );
+
+            if ( $json_start !== false && $json_end !== false && $json_end > $json_start ) {
+                $json_str = substr( $response, $json_start, $json_end - $json_start + 1 );
+                $result   = json_decode( $json_str, true );
+
+                if ( json_last_error() === JSON_ERROR_NONE ) {
+                    self::log( 'Pass 2: JSON extracted from mixed text' );
+                }
+            }
+        }
+
         if ( json_last_error() !== JSON_ERROR_NONE ) {
             self::log( 'Pass 2 JSON parse error: ' . json_last_error_msg() );
             self::log( 'Pass 2 raw (first 500): ' . substr( $response, 0, 500 ) );
@@ -819,6 +834,11 @@ PROMPT;
     /**
      * Parse the AI response JSON into article data.
      *
+     * When web_search is active, the response may contain non-JSON text
+     * (e.g., Claude's thinking before/after searches) alongside the JSON.
+     * This method tries direct parse first, then falls back to extracting
+     * the JSON object from the surrounding text.
+     *
      * @param string $response Raw JSON string from API.
      * @return array|false     Parsed article data or false.
      */
@@ -829,6 +849,23 @@ PROMPT;
         $response = preg_replace( '/\s*```$/', '', $response );
 
         $article = json_decode( $response, true );
+
+        // Fallback: if the full text isn't valid JSON (e.g., web search added
+        // thinking text around it), extract the JSON object by finding the
+        // outermost { ... } braces.
+        if ( json_last_error() !== JSON_ERROR_NONE ) {
+            $json_start = strpos( $response, '{' );
+            $json_end   = strrpos( $response, '}' );
+
+            if ( $json_start !== false && $json_end !== false && $json_end > $json_start ) {
+                $json_str = substr( $response, $json_start, $json_end - $json_start + 1 );
+                $article  = json_decode( $json_str, true );
+
+                if ( json_last_error() === JSON_ERROR_NONE ) {
+                    self::log( 'JSON extracted from mixed text (web search thinking text stripped)' );
+                }
+            }
+        }
 
         if ( json_last_error() !== JSON_ERROR_NONE ) {
             self::log( 'JSON parse error: ' . json_last_error_msg() );
