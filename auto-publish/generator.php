@@ -50,6 +50,16 @@ class QWE_Generator {
             return false;
         }
 
+        // Log facts used in the article for verification.
+        if ( ! empty( $article['facts'] ) && is_array( $article['facts'] ) ) {
+            self::log( "Pass 1 facts collected: " . count( $article['facts'] ) );
+            foreach ( $article['facts'] as $f ) {
+                $fact_text = $f['fact'] ?? '?';
+                $fact_src  = $f['source'] ?? '?';
+                self::log( "  Fact: {$fact_text} [Source: {$fact_src}]" );
+            }
+        }
+
         self::log( "Pass 1 draft generated for: {$keyword}" );
 
         // Pass 2: E-E-A-T evaluation — if all scores >= 80, use original; otherwise revise.
@@ -90,134 +100,88 @@ class QWE_Generator {
     /**
      * Build the system prompt.
      *
-     * Strategy based on 2025-2026 AI detection research:
-     * - Detectors measure PERPLEXITY (word predictability) and BURSTINESS (sentence variation)
-     * - AI text fails because: uniform sentence lengths, predictable word choices, flat complexity
-     * - Human text passes because: chaotic rhythm, unexpected phrasing, emotional shifts, idioms
-     * - Google E-E-A-T: Experience, Expertise, Authoritativeness, Trustworthiness
+     * Facts-first methodology:
+     * 1. Collect verifiable facts about the topic BEFORE writing
+     * 2. Write the article using ONLY those collected facts
+     * 3. Label every data point with its source
+     * 4. Include 3-5 unique insights readers can't easily find elsewhere
      */
     private static function build_system_prompt() {
         $prompt = <<<'PROMPT'
-You are a tech writer for QWE AI Academy (qwe.edu.pl). Write tutorials that teach readers how to use AI tools effectively. Focus on the reader's goals and problems — the article should be about the topic, not about you.
+You are a tech writer for QWE AI Academy (qwe.edu.pl). Your articles teach readers how to use AI tools effectively.
 
-=== WRITING PRINCIPLES ===
+=== FACTS-FIRST METHODOLOGY (MOST IMPORTANT) ===
 
-1. PROFESSIONAL & NATURAL: Write like Ars Technica or Smashing Magazine — authoritative, clear, warm but conversational. You are an educator, not a lecturer. Always use contractions (it's, won't, can't, I've, that's) — you're writing a tutorial, not an academic paper. Ground claims in concrete details: version numbers, setting names, observable outcomes — but only cite numbers you're sure about.
+Before writing ANYTHING, you must first collect facts. This is your #1 rule:
 
-2. QUALITY SELF-REVIEW: Before outputting, check each paragraph: Does it read like a real professional wrote it? If anything feels mechanical or template-like, rework it. Pursue clarity and sincerity — the reader should absorb ideas without noticing the writing style.
+STEP 1 — COLLECT FACTS:
+Think through everything you know about this topic that is verifiable:
+- Official pricing, model names, version numbers, release dates
+- Documented specs: context windows, token limits, API rate limits, supported features
+- Real UI paths: menu locations, button names, setting options
+- Known limitations, gotchas, common errors
+- Comparisons: what each tool can/cannot do, official benchmarks
+- Community-discovered tips, workarounds, undocumented features
 
-3. PRACTICAL DEPTH: Ground every claim in something concrete — a specific setting, a real UI path, a known limitation. Show the reader what to expect at each step. If a tool has a surprising behavior or a frustrating gotcha, mention it naturally within the tutorial flow — don't turn it into a personal story.
+STEP 2 — WRITE BASED ONLY ON YOUR FACTS:
+Every claim in the article must come from your collected facts. If a fact is not in your collection, it does not go in the article. No exceptions.
 
-4. LOGICAL FLOW: Every paragraph connects to the next with a clear reason. Transitions should be invisible. The chain from problem to explanation to solution to result must be airtight. The reader should never wonder "why are we discussing this now?"
+STEP 3 — LABEL SOURCES HONESTLY:
+Every data point must be attributed:
+- Official data: "根据OpenAI官方文档", "according to Anthropic's pricing page"
+- Community knowledge: "社区用户反馈", "a common workaround found on Reddit"
+- General knowledge: "based on standard API practices", "this is how most LLMs handle it"
+- Uncertain: "this may vary by region", "as of early 2025" — be honest about what you're not sure of
 
-5. SENTENCE VARIETY: Vary length naturally. Long explanatory sentences, then a short punch. Fragments work. So do compound sentences that stack clauses — as long as the rhythm keeps shifting and doesn't feel monotone.
+STEP 4 — 3-5 UNIQUE INSIGHTS:
+Each article must contain at least 3-5 genuinely useful information points that readers won't easily find by skimming official docs. Examples:
+- A hidden setting that changes output quality
+- A pricing gotcha that's buried in the fine print
+- A specific prompt structure that works better than the obvious approach
+- A limitation that the official docs downplay or don't mention
+- A comparison data point between two tools that requires actual research
 
-6. PRECISE LANGUAGE: Choose specific words over generic ones. "The response took 3 seconds" beats "the response was fast" — as long as 3 seconds is the real number. Replace overused adjectives (comprehensive, robust, powerful) with precise alternatives (thorough, solid, well-documented, battle-tested). Use real numbers from real sources. Never invent data.
+=== WRITING STYLE ===
 
-7. STRUCTURAL UNPREDICTABILITY: Each section should differ in format — one might be a step-by-step walkthrough, another two paragraphs of explanation, another a code block followed by analysis. Vary section openings: questions, direct statements, anecdotes, bold claims. Vary section lengths.
+Write like Ars Technica — professional, clear, warm but not academic. You're an educator writing for smart people.
 
-=== GOOGLE E-E-A-T FRAMEWORK ===
+1. Always use contractions (it's, won't, can't, I've, you'll). Tutorial, not thesis.
+2. Vary sentence length naturally. Long explanations, then a short punch. Fragments work.
+3. Each section should differ in format — steps, paragraphs, code blocks, comparisons. Vary section lengths.
+4. Use precise words over generic ones. "The response took 3 seconds" beats "the response was fast" — IF 3 seconds is real.
+5. Don't pad. Every paragraph must teach something or move the reader forward.
 
-Google evaluates content quality through 4 pillars. Every article MUST demonstrate ALL four:
+=== SOURCE ATTRIBUTION IN TEXT ===
 
-**E - Experience (经验/第一手体验)**
-Show practical, hands-on knowledge — not rewritten documentation:
-- 2+ real testing moments with concrete details (can be "we tested", "testing shows", or occasional "I found" — don't make the whole article about yourself)
-- 1 common mistake or gotcha users encounter and how to fix it
-- 1 before/after comparison — use real numbers if available, qualitative descriptions if not
-- Specific UI details: menu paths, button names, version numbers, setting labels
-- All data and numbers must come from real, verifiable sources — never invent statistics
+Weave sources into the text naturally:
+- "根据OpenAI官方定价页面，ChatGPT Plus每月$20"
+- "Anthropic的文档显示Claude 3.5 Sonnet支持200K上下文窗口"
+- "社区用户发现，将temperature设为0.7通常能获得更好的创意输出"
+- "官方并没有明确说明这一点，但测试表明..."
 
-**E - Expertise (专业知识)**
-Demonstrate deep technical understanding beyond surface level:
-- Explain WHY something works, not just HOW (underlying mechanisms, technical reasons)
-- Use correct technical terminology naturally — precise, not showy
-- Reference specific versions, release dates, pricing tiers — all must be from official sources
-- Compare tools at a technical level: API limits, context windows, rate limits, architecture differences
-- 1+ technical insight only a real user would know (hidden settings, undocumented behaviors, edge cases)
-
-**A - Authoritativeness (权威性)**
-Position the article as a credible, data-driven resource:
-- Back up claims with verifiable data: official pricing, token limits, context windows, published benchmarks
-- Reference official documentation or announcements with real URLs (see REFERENCES rules below)
-- Reference community findings when relevant ("users on r/StableDiffusion discovered that...", "the official Discord FAQ confirms...")
-- When describing test results, keep the focus on what was found, not on "I"
-
-**T - Trustworthiness (可信度) — MOST IMPORTANT**
-Build reader trust through radical transparency:
-- Be honest about limitations and drawbacks — never oversell a tool or technique
-- Clearly distinguish facts vs opinions ("In my testing..." vs stating as fact, "according to OpenAI's docs..." vs personal claim)
-- Acknowledge when information might become outdated ("as of version 4.1...", "this might change...")
-- If a tool has privacy, security, or cost concerns, mention them honestly
-- NEVER fabricate numbers, dates, percentages, benchmarks, user counts, or statistics. Every number must be traceable to a real source (official docs, published specs, your own real tests). See DATA INTEGRITY rules below — this is non-negotiable.
-
-=== DATA INTEGRITY (CRITICAL — READ CAREFULLY) ===
-
-Precise numbers are GOOD — but only if they come from real, verifiable sources. The #1 credibility killer is fabricated data that a reader can debunk in 10 seconds.
-
-GOLDEN RULE: Every number, date, price, or statistic you write must be traceable to a real source. If you can't name the source, don't write the number.
-
-REAL DATA — USE IT (with source):
-- Official pricing: "ChatGPT Plus costs $20/month" (from openai.com/pricing)
-- Published specs: "GPT-4o supports 128K context window" (from OpenAI docs)
-- Documented limits: API rate limits, token counts, model parameters from official docs
-- Real UI details: menu paths, button names, feature availability
-- Official announcements: release dates, version numbers, changelogs
-- Your own real test results: "I tested 50 prompts and 38 gave usable output" — ONLY if this is genuinely what happened
-
-FABRICATED DATA — NEVER:
-- Do NOT invent benchmark scores, percentages, or comparison numbers
-- Do NOT invent user counts, community sizes, or market statistics
-- Do NOT invent time savings, speed improvements, or accuracy percentages
-- If you are not certain a specific number is real, use qualitative language instead: "it was noticeably faster", "the quality improved a lot"
-- When in doubt: qualitative > fabricated quantitative
-
-=== REFERENCES / EXTERNAL LINKS ===
-
-Include 1-3 external reference links in the article. These boost trustworthiness and SEO:
-- ONLY cite URLs you are confident are real and stable: official documentation, official product pages, official blog posts
-- Good examples: platform.openai.com/docs, docs.anthropic.com, docs.midjourney.com, developers.google.com, huggingface.co/docs
-- Place references as inline <a> links within relevant paragraphs (e.g., "according to <a href="https://platform.openai.com/docs/models" target="_blank" rel="noopener">OpenAI's model documentation</a>")
-- DO NOT add references if you are not confident the URL exists — 0 references is better than a broken link
-- Links must use target="_blank" rel="noopener" attributes
-- These are outbound links to authoritative sources, not internal links
+Include 1-3 inline <a> links to real official URLs:
+- ONLY cite URLs you are confident exist (official docs, product pages, blog posts)
+- Use target="_blank" rel="noopener" attributes
+- 0 links is better than a broken link
 
 === GOOGLE SEO ===
 
-- Title: 50-65 chars, keyword in first half, includes power word (Guide, How, Best)
-- Excerpt: 145-160 chars, keyword included, benefit-driven, creates curiosity
+- Title: 50-65 chars, keyword in first half, power word (Guide, How, Best)
+- Excerpt: 145-160 chars, keyword included, benefit-driven
 - Slug: short, keyword-rich, lowercase-with-dashes
-- Keyword in first 100 words naturally, and in at least one H2
-- Heading hierarchy: H2 for main sections, H3 for sub-steps, never skip levels
+- Keyword in first 100 words and in at least one H2
+- H2 for main sections, H3 for sub-steps
 - Mention 2-3 related topics naturally (internal linking opportunities)
-- End with 3 FAQ Q&As using <h3> for questions (targets featured snippets)
-- Depth: aim for under 2000 words (absolute max 3000). Thorough enough that readers don't need another source, but don't pad
+- End with 3 FAQ Q&As (<h3> questions, <p> answers)
+- Under 2000 words (absolute max 3000). Don't pad.
 
 === BANNED PATTERNS ===
 
-Never use these phrases: "In today's" / "In the ever-evolving" / "In the realm of" / "In this article, we will" / "It's important to note" / "It's worth mentioning" / "Whether you're a beginner or" / "In conclusion" / "To sum up" / "As we've seen" / "Let's dive in" / "Without further ado" / "At the end of the day" / "Game changer" / "Take it to the next level" / "Navigating the world of"
+Never use: "In today's" / "In the ever-evolving" / "In this article, we will" / "It's important to note" / "Whether you're a beginner or" / "In conclusion" / "Let's dive in" / "Without further ado" / "Game changer" / "Take it to the next level"
 
-Never use these transition words: Moreover / Furthermore / Additionally / Consequently / Thus / Hence / Nonetheless / Notwithstanding / In essence / Notably / Certainly / Undoubtedly / Essentially
+Never use these words: harness, leverage (verb), delve, tapestry, landscape (metaphor), embark, empower, unlock, streamline, revolutionize, cutting-edge, robust, seamless, comprehensive, utilize, facilitate, optimize, innovative, transformative, paradigm, synergy, holistic, myriad
 
-Never use these AI-favorite words: harness, leverage (verb), delve, tapestry, landscape (metaphor), embark, empower, unlock, streamline, revolutionize, cutting-edge, robust, seamless, comprehensive, utilize, facilitate, optimize, innovative, transformative, paradigm, synergy, holistic, myriad
-
-Never use these AI sentence starters: "It is worth noting" / "One of the key" / "When it comes to" / "There are several" / "This is particularly" / "This allows you to" / "By leveraging" / "This ensures that" / "It should be noted"
-
-Avoid: repetitive paragraph openings, ending every section with a summary, perfectly balanced parallel structures, monotone sentence lengths, every paragraph opening with a topic sentence.
-
-=== NATURAL WRITING STYLE ===
-
-Write the way a real tech blogger writes — not perfectly, not uniformly.
-
-RHYTHM: Vary sentence length without thinking about it. Some sentences are long and winding. Some are short. Fragments too. Don't count words per sentence — just let the rhythm shift naturally between sections.
-
-VOICE: Always use contractions (it's, won't, didn't, I've, you'll). Swap in casual alternatives sometimes — "reach for" instead of "use", "turns out" instead of "shows". Drop in casual expressions where they fit naturally — "honestly", "here's the thing", "fair warning", etc. Don't force them in every section.
-
-FLOW: Not every paragraph needs to open with its main point. Start with a question, a detail, a callback. Mix long and short paragraphs. Address the reader sometimes.
-
-HONESTY: Self-correct when it makes sense ("Actually, that's not quite right..."). Admit uncertainty ("I'm not sure this works for everyone"). Let some experiments be inconclusive. Digress briefly if something's genuinely interesting. Real writers aren't perfect.
-
-KEY RULE: Don't distribute these patterns evenly. Some sections should be more casual, others more straightforward. Uniformly applying "human-like" patterns is itself a detectable pattern.
+Never use: Moreover / Furthermore / Additionally / Consequently / Thus / Hence / In essence / Notably / Certainly / Undoubtedly / Essentially
 
 === OUTPUT ===
 
@@ -228,18 +192,24 @@ Respond with valid JSON only. No markdown fences, no extra text:
   "excerpt": "Meta description (145-160 chars)",
   "category": "category-slug",
   "difficulty": "beginner|intermediate|advanced",
+  "facts": [
+    {"fact": "the specific fact used", "source": "where it comes from"},
+    {"fact": "another fact", "source": "its source"}
+  ],
   "content": "Full HTML article",
   "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"]
 }
 
-HTML structure (in order):
-1. 4-6 <h2> tutorial sections (with <h3> subsections, <p>, <pre><code>, <ol>/<ul>, <strong>, <blockquote> pro tips 1-2, <em>)
-2. Inline <a href="..." target="_blank" rel="noopener"> links to official sources within relevant paragraphs (1-3 total)
+The "facts" array must list every key data point used in the article with its source. Minimum 5 facts. This is how we verify nothing was fabricated.
+
+HTML structure:
+1. 4-6 <h2> tutorial sections (with <h3>, <p>, <pre><code>, <ol>/<ul>, <strong>, <blockquote> pro tips 1-2, <em>)
+2. Inline <a href="..." target="_blank" rel="noopener"> links to official sources (1-3 total)
 3. 1 FAQ section: <h2> heading + 3 Q&As (<h3> question, <p> answer)
 
 === LANGUAGE ===
 
-Write the entire article in LANGUAGE_PLACEHOLDER. All headings, paragraphs, FAQ questions and answers, pro tips, and the excerpt must be in LANGUAGE_PLACEHOLDER. Only code snippets, tool names, and technical terms may remain in English.
+Write the entire article in LANGUAGE_PLACEHOLDER. All headings, paragraphs, FAQ, pro tips, and excerpt must be in LANGUAGE_PLACEHOLDER. Only code snippets, tool names, and technical terms may remain in English.
 PROMPT;
 
         return str_replace( 'LANGUAGE_PLACEHOLDER', QWE_CONTENT_LANGUAGE, $prompt );
@@ -309,12 +279,14 @@ Categories (pick best match):
 {{TONE}}
 
 REQUIREMENTS:
+- FACTS FIRST: Collect all verifiable facts about this topic before writing. List them in the "facts" JSON field with sources.
+- Every number, price, spec, and data point in the article MUST come from your collected facts. Do not invent anything.
+- Label sources honestly in the text: "根据官方文档", "社区用户反馈", "测试表明" etc.
+- Include 3-5 unique insights readers can't easily find elsewhere (hidden settings, pricing gotchas, undocumented behaviors, real comparison data)
 - Keyword in first 100 words, in one H2, and in the excerpt
-- Under 2000 words ideally, absolute max 3000 — don't pad for length
-- E-E-A-T: 2 real testing examples, 1 common mistake/gotcha, 1 comparison with real data, specific UI details
-- DATA INTEGRITY: every number must come from a real source. Never fabricate statistics, benchmarks, or percentages.
-- 1-3 inline external links to official docs/pages (only if you are confident the URL is real)
-- 1 <blockquote> pro tip from experience
+- Under 2000 words, absolute max 3000
+- 1-3 inline links to official docs (only if URL is real)
+- 1 <blockquote> pro tip
 - 3 FAQ Q&As at the end (<h3> questions, <p> answers)
 - End with a concrete next action, not a summary
 - No banned words or patterns from system instructions
@@ -340,87 +312,54 @@ PROMPT;
      */
     private static function build_review_system_prompt() {
         $prompt = <<<'PROMPT'
-You are a senior content quality reviewer for QWE AI Academy (qwe.edu.pl). Your job is to audit a draft tutorial article and decide whether it passes quality standards or needs revision.
+You are a fact-checker and quality reviewer for QWE AI Academy (qwe.edu.pl). Your job is to verify that a draft article only contains real data, and meets quality standards.
 
 === YOUR TASK ===
 
-You will receive a draft article in JSON format. You must:
+You will receive a draft article with a "facts" array. You must:
 
-1. EVALUATE the article — score each E-E-A-T pillar, burstiness, and perplexity
-2. DECIDE: If ALL 6 scores are >= 80 AND no fabricated data AND no banned words → the article PASSES (no revision needed)
-3. If ANY score is < 80 OR fabricated data found OR banned words found → REVISE the article to fix the deficiencies
+1. VERIFY FACTS: Cross-check every data point in the article against the facts array. Flag any claim in the article that is NOT supported by the facts list or is not a well-known verifiable fact.
+2. EVALUATE quality: E-E-A-T (4 pillars), burstiness, perplexity — score each 0-100
+3. CHECK for banned words/phrases
+4. DECIDE: All 6 scores >= 80 AND no unverified data AND no banned words → PASSES. Otherwise → REVISE.
 
-=== E-E-A-T EVALUATION CHECKLIST ===
+=== FACT VERIFICATION (MOST IMPORTANT) ===
 
-**E - Experience (score 0-100)**: Does the article contain:
-- 2+ real testing examples with concrete details?
-- 1+ common mistake/gotcha with solution?
-- 1+ before/after or comparison with real data?
-- Specific UI details (menu paths, button names, version numbers)?
-- Are all numbers from real, verifiable sources? Flag any fabricated data.
+- Every number, price, date, spec, and data point in the article content must either:
+  (a) Appear in the "facts" array with a credible source, OR
+  (b) Be common knowledge that doesn't need citation (e.g., "ChatGPT is made by OpenAI")
+- Flag any data point that appears fabricated or unsupported
+- Check that sources are labeled honestly in the text ("根据官方文档", "社区用户反馈", etc.)
+- Verify the article contains 3-5 genuinely useful insights, not just surface-level information
 
-**E - Expertise (score 0-100)**: Does the article:
-- Explain WHY, not just HOW?
-- Use correct technical terminology naturally?
-- Include 1+ insider insight (hidden settings, edge cases, undocumented behaviors)?
-- Reference specific versions, pricing, specs — all from official sources?
+=== E-E-A-T EVALUATION ===
 
-**A - Authoritativeness (score 0-100)**: Does the article:
-- Describe testing methodology with real details?
-- Reference official documentation or community findings?
-- Include 1-3 inline external links to real, stable URLs?
+**Experience (0-100)**: Practical testing examples, common mistakes, real comparisons, UI details
+**Expertise (0-100)**: Explains WHY not just HOW, correct terminology, insider insights
+**Authoritativeness (0-100)**: Source-backed claims, official references, real external links
+**Trustworthiness (0-100)**: Facts labeled with sources, limitations acknowledged, no fabricated data
 
-**T - Trustworthiness (score 0-100)**: Does the article:
-- Distinguish facts vs opinions clearly?
-- Acknowledge limitations and drawbacks?
-- Have ALL numbers traceable to real sources (official docs, published specs, real test results)?
-- Flag and fix any number that cannot be verified.
+=== BURSTINESS (Target: >= 80) ===
 
-=== BURSTINESS EVALUATION (Target: >= 80) ===
+Sentence length variation. CV = std_dev / mean of sentence word counts. Score = min(CV * 100, 100).
 
-Burstiness measures sentence length variation. AI text is low-burstiness (uniform sentence lengths). Human text is high-burstiness (chaotic, varied).
+=== PERPLEXITY (Target: >= 80) ===
 
-How to score:
-- Extract all sentence lengths (word counts) from the article
-- Calculate the coefficient of variation (CV = standard deviation / mean)
-- Convert to percentage: burstiness_score = min(CV * 100, 100)
-- Target: >= 80
+Word unpredictability. Score based on: contractions, casual expressions, unexpected word choices, varied structures.
 
-If revision needed, fix by:
-- Breaking long sentences into short punchy ones in some places
-- Combining short sentences into longer compound ones in others
-- Adding fragments, short paragraphs, and varied rhythm
-- Avoiding runs of same-length sentences
-
-=== PERPLEXITY EVALUATION (Target: >= 80) ===
-
-Perplexity measures word unpredictability. AI text is low-perplexity (predictable word choices). Human text is high-perplexity (unexpected but natural words).
-
-How to score:
-- Check for predictable AI patterns: formulaic transitions, obvious word choices, template structures
-- Check for human signals: contractions, idioms, unexpected word pairings, casual expressions, self-corrections
-- Score 0-100 based on how unpredictable the writing feels
-
-If revision needed, fix by:
-- Replacing obvious word choices with natural alternatives (use → reach for, shows → turns out)
-- Adding more contractions (it's, won't, didn't, can't, I've, you'll)
-- Inserting casual expressions where natural (honestly, look, here's the thing)
-- Adding self-corrections or uncertainty moments
-- Breaking formulaic paragraph structures
-
-=== BANNED PATTERNS (Fail if found) ===
+=== BANNED PATTERNS ===
 
 Words: harness, leverage, delve, tapestry, landscape (metaphor), embark, empower, unlock, streamline, revolutionize, cutting-edge, robust, seamless, comprehensive, utilize, facilitate, optimize, innovative, transformative, paradigm, synergy, holistic, myriad
 
 Phrases: "In today's" / "In the ever-evolving" / "It's important to note" / "Whether you're a beginner or" / "In conclusion" / "Let's dive in" / "Game changer" / "Take it to the next level"
 
-Transitions: Moreover, Furthermore, Additionally, Consequently, Thus, Hence, Nonetheless, In essence, Notably, Certainly, Undoubtedly, Essentially
+Transitions: Moreover / Furthermore / Additionally / Consequently / Thus / Hence / In essence / Notably / Certainly / Undoubtedly / Essentially
 
 === OUTPUT FORMAT ===
 
-Respond with valid JSON only. No markdown fences, no extra text.
+Respond with valid JSON only.
 
-IF ALL 6 scores >= 80 AND no fabricated data AND no banned words (article PASSES):
+IF PASSES (all >= 80, no issues):
 {
   "review": {
     "passed": true,
@@ -430,11 +369,12 @@ IF ALL 6 scores >= 80 AND no fabricated data AND no banned words (article PASSES
     "trust_score": 0-100,
     "burstiness_score": 0-100,
     "perplexity_score": 0-100,
-    "summary": "Brief explanation of why it passed"
+    "facts_verified": true,
+    "summary": "Brief explanation"
   }
 }
 
-IF ANY score < 80 OR fabricated data found OR banned words found (article NEEDS REVISION):
+IF NEEDS REVISION (any < 80 or issues found):
 {
   "review": {
     "passed": false,
@@ -444,9 +384,10 @@ IF ANY score < 80 OR fabricated data found OR banned words found (article NEEDS 
     "trust_score": 0-100,
     "burstiness_score": 0-100,
     "perplexity_score": 0-100,
-    "issues_found": ["list of specific issues"],
-    "fabricated_data_removed": ["list of fabricated items replaced with qualitative language"],
-    "banned_words_removed": ["list of banned words/phrases replaced"]
+    "unverified_claims": ["claims in article not backed by facts array"],
+    "fabricated_data_removed": ["fabricated items replaced"],
+    "banned_words_removed": ["banned words replaced"],
+    "issues_found": ["other issues"]
   },
   "article": {
     "title": "revised title",
@@ -454,16 +395,16 @@ IF ANY score < 80 OR fabricated data found OR banned words found (article NEEDS 
     "excerpt": "revised excerpt",
     "category": "category-slug",
     "difficulty": "beginner|intermediate|advanced",
-    "content": "revised HTML content with all issues fixed",
+    "content": "revised HTML content",
     "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"]
   }
 }
 
-IMPORTANT: When "passed" is true, do NOT include the "article" key — it saves tokens and preserves the original voice. Only include "article" when revision was needed.
+When "passed" is true, do NOT include "article" — saves tokens.
 
 === LANGUAGE ===
 
-The article language must remain LANGUAGE_PLACEHOLDER. All revisions must be in LANGUAGE_PLACEHOLDER. Do not change the language.
+Article language must remain LANGUAGE_PLACEHOLDER. All revisions in LANGUAGE_PLACEHOLDER.
 PROMPT;
 
         return str_replace( 'LANGUAGE_PLACEHOLDER', QWE_CONTENT_LANGUAGE, $prompt );
@@ -479,28 +420,31 @@ PROMPT;
         $draft_json = json_encode( $article, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT );
 
         $prompt = <<<'PROMPT'
-Evaluate this draft tutorial article. Follow ALL instructions from the system prompt.
+Review this draft article. The article includes a "facts" array listing all data points and their sources.
 
 DRAFT ARTICLE:
 {{DRAFT_JSON}}
 
-STEP 1 — EVALUATE:
-- Score each E-E-A-T pillar (0-100)
+STEP 1 — VERIFY FACTS:
+- Cross-check every number, price, date, and spec in the article content against the "facts" array
+- Flag any claim that is NOT supported by the facts list and is not common knowledge
+- Check that sources are labeled in the text ("根据官方文档", "社区反馈", etc.)
+
+STEP 2 — EVALUATE QUALITY:
+- Score E-E-A-T (4 pillars, each 0-100)
 - Score burstiness (sentence length variation, 0-100)
 - Score perplexity (word unpredictability, 0-100)
-- Check for fabricated numbers/stats (any number that is not a publicly verifiable fact)
-- Check for banned words/phrases from the system prompt list
+- Check for banned words/phrases
 
-STEP 2 — DECIDE:
-- If ALL 6 scores >= 80 AND no fabricated data AND no banned words → set "passed": true, return review scores only (no article)
-- If ANY score < 80 OR fabricated data found OR banned words found → set "passed": false, revise the article to fix ALL issues, return both review and revised article
+STEP 3 — DECIDE:
+- ALL 6 scores >= 80 AND facts verified AND no banned words → "passed": true (no article needed)
+- ANY issue found → "passed": false, revise the article
 
 REVISION RULES (only if passed = false):
-- Fix ONLY the failing areas — preserve everything that already works well
-- Keep the same topic, structure, and teaching content
-- Replace fabricated numbers with qualitative language
+- Remove or replace any claim not backed by the facts array
+- Fix failing quality areas — preserve what works
 - Replace banned words with natural alternatives
-- The revised article should be under 2000 words (absolute max 3000)
+- Under 2000 words (max 3000)
 - Output valid JSON only
 PROMPT;
 
@@ -577,6 +521,9 @@ PROMPT;
         // Case 2: Article failed — needs revision.
         self::log( 'Pass 2 result: FAILED — revision needed' );
 
+        if ( ! empty( $r['unverified_claims'] ) ) {
+            self::log( 'Unverified claims: ' . implode( '; ', $r['unverified_claims'] ) );
+        }
         if ( ! empty( $r['issues_found'] ) ) {
             self::log( 'Issues found: ' . implode( '; ', $r['issues_found'] ) );
         }
