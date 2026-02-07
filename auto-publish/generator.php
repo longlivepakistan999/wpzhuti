@@ -36,7 +36,8 @@ class QWE_Generator {
         $system_prompt = self::build_system_prompt();
         $user_prompt = self::build_user_prompt( $keyword, $keyword_type, $hint_category, $difficulty, $category_list );
 
-        $response = self::call_claude_api( $system_prompt, $user_prompt );
+        // Pass 1: Generate article with web search enabled (if configured).
+        $response = self::call_claude_api( $system_prompt, $user_prompt, true );
 
         if ( ! $response ) {
             self::log( "API call failed for keyword: {$keyword}" );
@@ -114,8 +115,17 @@ You are a tech writer for QWE AI Academy (qwe.edu.pl). Your articles teach reade
 
 Before writing ANYTHING, you must first collect facts. This is your #1 rule:
 
+STEP 0 — WEB SEARCH (if you have the web_search tool):
+You have access to a web search tool. USE IT before writing to get the latest, most accurate facts:
+- Search for current pricing, model versions, API changes, and feature updates
+- Verify release dates, specs, and official announcements
+- Find real URLs to official docs before linking to them
+- Look up recent community tips, workarounds, and undocumented behaviors
+- Check up-to-date comparison data between tools
+Search first, collect facts from results, THEN write. Cite what you find.
+
 STEP 1 — COLLECT FACTS:
-Think through everything you know about this topic that is verifiable:
+Combine web search results with your existing knowledge. List every verifiable fact:
 - Official pricing, model names, version numbers, release dates
 - Documented specs: context windows, token limits, API rate limits, supported features
 - Real UI paths: menu locations, button names, setting options
@@ -279,7 +289,8 @@ Categories (pick best match):
 {{TONE}}
 
 REQUIREMENTS:
-- FACTS FIRST: Collect all verifiable facts about this topic before writing. List them in the "facts" JSON field with sources.
+- WEB SEARCH FIRST: If you have the web_search tool, search for the latest info on this topic BEFORE writing. Look up current pricing, features, official docs, and recent updates.
+- FACTS FIRST: Collect all verifiable facts (from web search + your knowledge) about this topic before writing. List them in the "facts" JSON field with sources.
 - Every number, price, spec, and data point in the article MUST come from your collected facts. Do not invent anything.
 - Label sources honestly in the text: "根据官方文档", "社区用户反馈", "测试表明" etc.
 - Include 3-5 unique insights readers can't easily find elsewhere (hidden settings, pricing gotchas, undocumented behaviors, real comparison data)
@@ -562,11 +573,18 @@ PROMPT;
     /**
      * Call the Claude API.
      *
-     * @param string $system_prompt System message.
-     * @param string $user_prompt   User message.
-     * @return string|false         Raw response text or false.
+     * Supports the server-side web_search tool. When enabled, Claude can
+     * search the web during generation. The response may contain mixed
+     * content blocks (text, server_tool_use, web_search_tool_result).
+     * If the API returns pause_turn, the conversation is continued
+     * automatically (up to 3 rounds).
+     *
+     * @param string $system_prompt   System message.
+     * @param string $user_prompt     User message.
+     * @param bool   $use_web_search  Whether to enable web_search tool for this call.
+     * @return string|false           Raw response text or false.
      */
-    private static function call_claude_api( $system_prompt, $user_prompt ) {
+    private static function call_claude_api( $system_prompt, $user_prompt, $use_web_search = false ) {
         $api_key = QWE_CLAUDE_API_KEY;
         $model = QWE_CLAUDE_MODEL;
 
@@ -575,54 +593,131 @@ PROMPT;
             return false;
         }
 
-        $payload = json_encode( array(
+        $messages = array(
+            array(
+                'role'    => 'user',
+                'content' => $user_prompt,
+            ),
+        );
+
+        $payload_data = array(
             'model'      => $model,
             'max_tokens' => 8192,
             'system'     => $system_prompt,
-            'messages'   => array(
+            'messages'   => $messages,
+        );
+
+        // Add web_search tool if enabled globally and requested for this call.
+        $web_search_active = $use_web_search
+            && defined( 'QWE_WEB_SEARCH_ENABLED' ) && QWE_WEB_SEARCH_ENABLED;
+
+        if ( $web_search_active ) {
+            $max_uses = defined( 'QWE_WEB_SEARCH_MAX_USES' ) ? (int) QWE_WEB_SEARCH_MAX_USES : 5;
+            $payload_data['tools'] = array(
                 array(
-                    'role'    => 'user',
-                    'content' => $user_prompt,
+                    'type'     => 'web_search_20250305',
+                    'name'     => 'web_search',
+                    'max_uses' => $max_uses,
                 ),
-            ),
-        ) );
+            );
+            self::log( "Web search enabled (max {$max_uses} searches)" );
+        }
 
-        $ch = curl_init( 'https://api.anthropic.com/v1/messages' );
-        curl_setopt_array( $ch, array(
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => $payload,
-            CURLOPT_HTTPHEADER     => array(
-                'Content-Type: application/json',
-                'x-api-key: ' . $api_key,
-                'anthropic-version: 2023-06-01',
-            ),
-            CURLOPT_TIMEOUT        => 120,
-        ) );
+        // Timeout: longer when web search is active (searches take time).
+        $timeout = $web_search_active ? 180 : 120;
 
-        $response = curl_exec( $ch );
-        $http_code = curl_getinfo( $ch, CURLINFO_HTTP_CODE );
-        $error = curl_error( $ch );
-        curl_close( $ch );
+        // Collect text from all rounds (pause_turn may split the response).
+        $all_text_parts    = array();
+        $total_search_count = 0;
+        $max_continuations = 3;
 
-        if ( $error ) {
-            self::log( "cURL error: {$error}" );
+        for ( $round = 0; $round <= $max_continuations; $round++ ) {
+            $payload = json_encode( $payload_data, JSON_UNESCAPED_UNICODE );
+
+            $ch = curl_init( 'https://api.anthropic.com/v1/messages' );
+            curl_setopt_array( $ch, array(
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST           => true,
+                CURLOPT_POSTFIELDS     => $payload,
+                CURLOPT_HTTPHEADER     => array(
+                    'Content-Type: application/json',
+                    'x-api-key: ' . $api_key,
+                    'anthropic-version: 2023-06-01',
+                ),
+                CURLOPT_TIMEOUT        => $timeout,
+            ) );
+
+            $response  = curl_exec( $ch );
+            $http_code = curl_getinfo( $ch, CURLINFO_HTTP_CODE );
+            $error     = curl_error( $ch );
+            curl_close( $ch );
+
+            if ( $error ) {
+                self::log( "cURL error: {$error}" );
+                return false;
+            }
+
+            if ( 200 !== $http_code ) {
+                self::log( "API HTTP {$http_code}: " . substr( $response, 0, 500 ) );
+                return false;
+            }
+
+            $data = json_decode( $response, true );
+
+            if ( ! isset( $data['content'] ) || ! is_array( $data['content'] ) ) {
+                self::log( 'Unexpected API response structure' );
+                return false;
+            }
+
+            // Extract text blocks and log web searches from this round.
+            foreach ( $data['content'] as $block ) {
+                $block_type = $block['type'] ?? '';
+
+                if ( 'text' === $block_type ) {
+                    $all_text_parts[] = $block['text'];
+                }
+
+                if ( 'server_tool_use' === $block_type && 'web_search' === ( $block['name'] ?? '' ) ) {
+                    $total_search_count++;
+                    $query = $block['input']['query'] ?? '?';
+                    self::log( "Web search #{$total_search_count}: \"{$query}\"" );
+                }
+            }
+
+            // Check if the API paused mid-turn (long-running web search).
+            $stop_reason = $data['stop_reason'] ?? 'end_turn';
+
+            if ( 'pause_turn' === $stop_reason && $round < $max_continuations ) {
+                self::log( 'API returned pause_turn — continuing (round ' . ( $round + 1 ) . ')' );
+
+                // Append the assistant's partial response and ask to continue.
+                $payload_data['messages'][] = array(
+                    'role'    => 'assistant',
+                    'content' => $data['content'],
+                );
+                $payload_data['messages'][] = array(
+                    'role'    => 'user',
+                    'content' => 'Continue.',
+                );
+                continue;
+            }
+
+            // Done — either end_turn or max continuations reached.
+            break;
+        }
+
+        if ( $total_search_count > 0 ) {
+            self::log( "Total web searches performed: {$total_search_count}" );
+        }
+
+        $full_text = implode( '', $all_text_parts );
+
+        if ( empty( $full_text ) ) {
+            self::log( 'No text content in API response' );
             return false;
         }
 
-        if ( 200 !== $http_code ) {
-            self::log( "API HTTP {$http_code}: " . substr( $response, 0, 500 ) );
-            return false;
-        }
-
-        $data = json_decode( $response, true );
-
-        if ( ! isset( $data['content'][0]['text'] ) ) {
-            self::log( 'Unexpected API response structure' );
-            return false;
-        }
-
-        return $data['content'][0]['text'];
+        return $full_text;
     }
 
     /**

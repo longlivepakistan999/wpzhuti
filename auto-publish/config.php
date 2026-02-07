@@ -31,6 +31,18 @@ define( 'QWE_OPENAI_API_KEY', '' );  // sk-...
 define( 'QWE_OPENAI_MODEL', 'gpt-4o' );
 
 // ============================================================
+// Web Search Settings (Claude searches the web during generation)
+// ============================================================
+
+// Enable web search during article generation (Pass 1 only).
+// Claude will search the web for the latest facts before writing.
+// Cost: $10 per 1,000 searches + standard token costs.
+define( 'QWE_WEB_SEARCH_ENABLED', true );
+
+// Maximum number of web searches per article generation.
+define( 'QWE_WEB_SEARCH_MAX_USES', 5 );
+
+// ============================================================
 // Publishing Settings
 // ============================================================
 
