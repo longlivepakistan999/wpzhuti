@@ -115,17 +115,19 @@ define( 'QWE_CATEGORIES', serialize( array(
 ) ) );
 
 // ============================================================
-// Image Settings (auto-insert stock photos into articles)
+// Image Settings (auto-insert images into articles)
 // ============================================================
 
-// Enable automatic image insertion using Pexels free stock photo API.
+// Enable automatic image insertion.
 define( 'QWE_IMAGES_ENABLED', true );
-
-// Pexels API key (free: https://www.pexels.com/api/ — 200 requests/hour).
-define( 'QWE_PEXELS_API_KEY', '' );  // Get free key at pexels.com/api
 
 // Number of images to insert per article (2-4 recommended).
 define( 'QWE_IMAGES_PER_ARTICLE', 3 );
+
+// --- Stock Photo Settings (Pexels) ---
+
+// Pexels API key (free: https://www.pexels.com/api/ — 200 requests/hour).
+define( 'QWE_PEXELS_API_KEY', '' );  // Get free key at pexels.com/api
 
 // Preferred image orientation: 'landscape', 'portrait', or 'square'.
 define( 'QWE_IMAGE_ORIENTATION', 'landscape' );
@@ -133,6 +135,24 @@ define( 'QWE_IMAGE_ORIENTATION', 'landscape' );
 // Image size to download: 'original', 'large2x', 'large', 'medium', 'small'.
 // 'large' is recommended (good quality, reasonable file size ~200-400KB).
 define( 'QWE_IMAGE_SIZE', 'large' );
+
+// --- Screenshot Settings ---
+
+// Enable website screenshot capture for tool/website references in articles.
+define( 'QWE_SCREENSHOTS_ENABLED', true );
+
+// Screenshot API provider: 'thum' (free, no key) or 'screenshotone' (better quality, key needed).
+define( 'QWE_SCREENSHOT_PROVIDER', 'thum' );
+
+// ScreenshotOne API key (optional, only if provider = 'screenshotone').
+// Free tier: 100 screenshots/month. https://screenshotone.com/
+define( 'QWE_SCREENSHOTONE_API_KEY', '' );
+
+// Screenshot viewport width (pixels). 1280 is standard desktop.
+define( 'QWE_SCREENSHOT_WIDTH', 1280 );
+
+// Screenshot viewport height (pixels for crop). 800 captures above-the-fold.
+define( 'QWE_SCREENSHOT_HEIGHT', 800 );
 
 // ============================================================
 // Content language

@@ -214,16 +214,31 @@ Do NOT give all three the same rhythm (answer → condition → advice). Break t
 
 Insert image placeholders in the article content where a visual would help readers. Use this exact HTML comment format:
 
-<!-- QWE_IMAGE: {"query": "search terms for stock photo", "alt": "descriptive alt text for accessibility"} -->
+TWO TYPES of images:
 
-Rules:
-- Insert 2-4 image placeholders per article (the system will fetch real stock photos).
+1. STOCK PHOTO (generic/conceptual images):
+<!-- QWE_IMAGE: {"type": "stock", "query": "search terms for stock photo", "alt": "descriptive alt text"} -->
+
+2. SCREENSHOT (real tool/website interface captures):
+<!-- QWE_IMAGE: {"type": "screenshot", "url": "https://example.com/page", "alt": "descriptive alt text"} -->
+
+WHEN TO USE EACH:
+- Use "screenshot" when the article mentions a specific tool, app, or website that readers should see. The URL must be a real, publicly accessible page — NOT a login-required page.
+  Examples: official homepages, documentation pages, pricing pages, public dashboards, API playgrounds.
+  Good URLs: "https://chat.openai.com", "https://docs.anthropic.com", "https://www.midjourney.com"
+  BAD URLs: URLs requiring login, personal dashboards, API endpoints, 404-prone deep links.
+- Use "stock" for conceptual/illustrative images where no specific webpage applies.
+  Examples: "person brainstorming with AI", "team collaborating on code", "data visualization dashboard".
+
+RULES:
+- Insert 2-4 image placeholders per article.
+- Prefer "screenshot" over "stock" when the article discusses specific tools — real UI screenshots are more useful than generic stock photos.
 - Place them BETWEEN paragraphs or sections — never inside a paragraph.
-- The "query" should be specific English search terms that would find a relevant stock photo. Example: "person using laptop AI chatbot interface" not "AI" (too vague).
-- The "alt" should describe what the image should show, written for screen readers.
+- For "stock": the "query" should be specific English search terms. "person using laptop AI chatbot interface" not "AI" (too vague).
+- For "screenshot": the "url" must be a real, publicly accessible URL. If unsure whether a URL is accessible, use "stock" instead.
+- The "alt" should describe what the image shows, written for screen readers.
 - Place the FIRST image near the top (after the first 1-2 paragraphs) — this becomes the featured image.
 - Spread remaining images evenly through the article.
-- Good placement: after introducing a concept, before a step-by-step section, or between major sections.
 - Do NOT place images inside code blocks, lists, or blockquotes.
 
 === GOOGLE SEO ===

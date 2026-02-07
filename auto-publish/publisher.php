@@ -228,11 +228,12 @@ class QWE_Publisher {
             'attachment_ids'    => array(),
         );
 
-        $api_key = defined( 'QWE_PEXELS_API_KEY' ) ? QWE_PEXELS_API_KEY : '';
+        $pexels_key         = defined( 'QWE_PEXELS_API_KEY' ) ? QWE_PEXELS_API_KEY : '';
+        $screenshots_enabled = defined( 'QWE_SCREENSHOTS_ENABLED' ) && QWE_SCREENSHOTS_ENABLED;
 
-        if ( empty( $api_key ) ) {
-            self::log( 'Pexels API key not configured — skipping image insertion' );
-            // Strip all placeholders so they don't leak into published content.
+        // If neither image source is configured, strip placeholders and bail.
+        if ( empty( $pexels_key ) && ! $screenshots_enabled ) {
+            self::log( 'No image sources configured — skipping image insertion' );
             $result['content'] = preg_replace( '/<!-- QWE_IMAGE: \{[^}]+\} -->/', '', $content );
             return $result;
         }
@@ -244,9 +245,9 @@ class QWE_Publisher {
             return $result;
         }
 
-        $max_images     = defined( 'QWE_IMAGES_PER_ARTICLE' ) ? (int) QWE_IMAGES_PER_ARTICLE : 3;
-        $orientation    = defined( 'QWE_IMAGE_ORIENTATION' ) ? QWE_IMAGE_ORIENTATION : 'landscape';
-        $size_key       = defined( 'QWE_IMAGE_SIZE' ) ? QWE_IMAGE_SIZE : 'large';
+        $max_images      = defined( 'QWE_IMAGES_PER_ARTICLE' ) ? (int) QWE_IMAGES_PER_ARTICLE : 3;
+        $orientation     = defined( 'QWE_IMAGE_ORIENTATION' ) ? QWE_IMAGE_ORIENTATION : 'landscape';
+        $size_key        = defined( 'QWE_IMAGE_SIZE' ) ? QWE_IMAGE_SIZE : 'large';
         $images_inserted = 0;
 
         // Load required WordPress functions for media handling.
@@ -258,43 +259,92 @@ class QWE_Publisher {
 
         foreach ( $matches as $match ) {
             if ( $images_inserted >= $max_images ) {
-                // Remove remaining placeholders without replacing.
                 $content = str_replace( $match[0], '', $content );
                 continue;
             }
 
             $image_data = json_decode( $match[1], true );
-            if ( ! $image_data || empty( $image_data['query'] ) ) {
+            if ( ! $image_data ) {
                 self::log( 'Invalid image placeholder JSON: ' . $match[1] );
                 $content = str_replace( $match[0], '', $content );
                 continue;
             }
 
-            $query   = $image_data['query'];
-            $alt     = ! empty( $image_data['alt'] ) ? $image_data['alt'] : $query;
+            $type = ! empty( $image_data['type'] ) ? $image_data['type'] : 'stock';
+            $alt  = ! empty( $image_data['alt'] ) ? $image_data['alt'] : '';
 
-            // Search Pexels for a matching photo.
-            $photo = self::search_pexels( $api_key, $query, $orientation );
+            // Route to the appropriate image source.
+            $attachment_id = 0;
+            $credit_html   = '';
 
-            if ( ! $photo ) {
-                self::log( "Pexels: no results for \"{$query}\" — removing placeholder" );
-                $content = str_replace( $match[0], '', $content );
-                continue;
+            if ( 'screenshot' === $type && $screenshots_enabled && ! empty( $image_data['url'] ) ) {
+                // --- Screenshot path ---
+                $target_url = $image_data['url'];
+                $alt        = $alt ?: $target_url;
+
+                $screenshot_url = self::get_screenshot_url( $target_url );
+                if ( $screenshot_url ) {
+                    $attachment_id = self::upload_image_to_media( $screenshot_url, $alt, 0 );
+                    if ( $attachment_id ) {
+                        $credit_html = '<figcaption>Screenshot: <a href="' . esc_url( $target_url ) . '" target="_blank" rel="noopener">'
+                            . esc_html( self::get_domain( $target_url ) ) . '</a></figcaption>';
+                        self::log( "Screenshot captured: {$target_url} → attachment #{$attachment_id}" );
+                    } else {
+                        self::log( "Screenshot upload failed for: {$target_url}" );
+                    }
+                } else {
+                    self::log( "Screenshot URL generation failed for: {$target_url}" );
+                }
+
+                // Fallback to stock photo if screenshot failed and we have a Pexels key.
+                if ( ! $attachment_id && ! empty( $pexels_key ) ) {
+                    $fallback_query = ! empty( $image_data['query'] ) ? $image_data['query'] : self::get_domain( $target_url ) . ' website';
+                    self::log( "Screenshot fallback to stock for: {$fallback_query}" );
+                    $type = 'stock';
+                    $image_data['query'] = $fallback_query;
+                }
             }
 
-            // Get the image URL at the configured size.
-            $image_url = self::get_pexels_image_url( $photo, $size_key );
+            if ( 'stock' === $type && ! empty( $pexels_key ) ) {
+                // --- Stock photo path ---
+                $query = ! empty( $image_data['query'] ) ? $image_data['query'] : '';
+                if ( empty( $query ) ) {
+                    $content = str_replace( $match[0], '', $content );
+                    continue;
+                }
+                $alt = $alt ?: $query;
 
-            if ( ! $image_url ) {
-                $content = str_replace( $match[0], '', $content );
-                continue;
+                $photo = self::search_pexels( $pexels_key, $query, $orientation );
+                if ( $photo ) {
+                    $image_url = self::get_pexels_image_url( $photo, $size_key );
+                    if ( $image_url ) {
+                        $attachment_id = self::upload_image_to_media( $image_url, $alt, 0, $photo );
+                        if ( $attachment_id ) {
+                            $photographer = ! empty( $photo['photographer'] ) ? $photo['photographer'] : '';
+                            if ( $photographer ) {
+                                $photo_url   = ! empty( $photo['photographer_url'] ) ? $photo['photographer_url'] : '';
+                                $credit_html = '<figcaption>Photo by ';
+                                if ( $photo_url ) {
+                                    $credit_html .= '<a href="' . esc_url( $photo_url ) . '" target="_blank" rel="noopener">';
+                                    $credit_html .= esc_html( $photographer ) . '</a>';
+                                } else {
+                                    $credit_html .= esc_html( $photographer );
+                                }
+                                $credit_html .= ' / <a href="https://www.pexels.com" target="_blank" rel="noopener">Pexels</a>';
+                                $credit_html .= '</figcaption>';
+                            }
+                            self::log( "Stock image inserted: \"{$query}\" → attachment #{$attachment_id}" );
+                        }
+                    }
+                }
+
+                if ( ! $attachment_id ) {
+                    self::log( "Pexels: no usable result for \"{$query}\" — removing placeholder" );
+                }
             }
 
-            // Download and upload to WordPress media library (unattached, post_parent=0).
-            $attachment_id = self::upload_image_to_media( $image_url, $alt, 0, $photo );
-
+            // If no image was obtained from either source, remove placeholder.
             if ( ! $attachment_id ) {
-                self::log( "Failed to upload image for \"{$query}\"" );
                 $content = str_replace( $match[0], '', $content );
                 continue;
             }
@@ -305,7 +355,6 @@ class QWE_Publisher {
             $img_src    = wp_get_attachment_url( $attachment_id );
             $img_srcset = wp_get_attachment_image_srcset( $attachment_id, 'large' );
             $img_sizes  = wp_get_attachment_image_sizes( $attachment_id, 'large' );
-            $photographer = ! empty( $photo['photographer'] ) ? $photo['photographer'] : '';
 
             $figure_html = '<figure class="article-image">';
             $figure_html .= '<img src="' . esc_url( $img_src ) . '"';
@@ -317,29 +366,15 @@ class QWE_Publisher {
             }
             $figure_html .= ' alt="' . esc_attr( $alt ) . '"';
             $figure_html .= ' loading="lazy" />';
-            if ( $photographer ) {
-                $photo_url = ! empty( $photo['photographer_url'] ) ? $photo['photographer_url'] : '';
-                $figure_html .= '<figcaption>Photo by ';
-                if ( $photo_url ) {
-                    $figure_html .= '<a href="' . esc_url( $photo_url ) . '" target="_blank" rel="noopener">';
-                    $figure_html .= esc_html( $photographer ) . '</a>';
-                } else {
-                    $figure_html .= esc_html( $photographer );
-                }
-                $figure_html .= ' / <a href="https://www.pexels.com" target="_blank" rel="noopener">Pexels</a>';
-                $figure_html .= '</figcaption>';
-            }
+            $figure_html .= $credit_html;
             $figure_html .= '</figure>';
 
             $content = str_replace( $match[0], $figure_html, $content );
             $images_inserted++;
 
-            // First image becomes the featured image.
             if ( 0 === $result['featured_image_id'] ) {
                 $result['featured_image_id'] = $attachment_id;
             }
-
-            self::log( "Image inserted: \"{$query}\" → attachment #{$attachment_id}" );
         }
 
         $result['content'] = $content;
@@ -347,6 +382,140 @@ class QWE_Publisher {
 
         return $result;
     }
+
+    // ==========================================================
+    // Screenshot Capture
+    // ==========================================================
+
+    /**
+     * Generate a screenshot URL for a target webpage.
+     *
+     * Supports two providers:
+     * - 'thum': Free, no API key needed. Uses thum.io service.
+     * - 'screenshotone': Better quality, needs API key. Free tier: 100/month.
+     *
+     * @param string $target_url The webpage URL to screenshot.
+     * @return string|false      Screenshot image URL or false on failure.
+     */
+    private static function get_screenshot_url( $target_url ) {
+        // Validate URL.
+        if ( ! filter_var( $target_url, FILTER_VALIDATE_URL ) ) {
+            self::log( "Invalid screenshot URL: {$target_url}" );
+            return false;
+        }
+
+        // Block private/local URLs to prevent SSRF.
+        $host = parse_url( $target_url, PHP_URL_HOST );
+        if ( ! $host || self::is_private_host( $host ) ) {
+            self::log( "Blocked private/local screenshot URL: {$target_url}" );
+            return false;
+        }
+
+        $provider = defined( 'QWE_SCREENSHOT_PROVIDER' ) ? QWE_SCREENSHOT_PROVIDER : 'thum';
+        $width    = defined( 'QWE_SCREENSHOT_WIDTH' ) ? (int) QWE_SCREENSHOT_WIDTH : 1280;
+        $height   = defined( 'QWE_SCREENSHOT_HEIGHT' ) ? (int) QWE_SCREENSHOT_HEIGHT : 800;
+
+        if ( 'screenshotone' === $provider ) {
+            return self::get_screenshotone_url( $target_url, $width, $height );
+        }
+
+        // Default: thum.io (free, no key needed).
+        return self::get_thum_url( $target_url, $width, $height );
+    }
+
+    /**
+     * Generate screenshot URL using thum.io (free service).
+     *
+     * thum.io provides free website thumbnails with no API key.
+     * Rate limits are generous for low-volume use.
+     *
+     * @param string $url    Target URL.
+     * @param int    $width  Viewport width.
+     * @param int    $height Crop height.
+     * @return string Screenshot URL.
+     */
+    private static function get_thum_url( $url, $width, $height ) {
+        // thum.io URL format: https://image.thum.io/get/width/W/crop/H/URL
+        return 'https://image.thum.io/get/width/' . $width . '/crop/' . $height . '/' . $url;
+    }
+
+    /**
+     * Generate screenshot URL using ScreenshotOne API.
+     *
+     * ScreenshotOne provides higher quality screenshots with more options.
+     * Free tier: 100 screenshots/month.
+     *
+     * @param string $url    Target URL.
+     * @param int    $width  Viewport width.
+     * @param int    $height Viewport height.
+     * @return string|false  Screenshot URL or false if not configured.
+     */
+    private static function get_screenshotone_url( $url, $width, $height ) {
+        $api_key = defined( 'QWE_SCREENSHOTONE_API_KEY' ) ? QWE_SCREENSHOTONE_API_KEY : '';
+        if ( empty( $api_key ) ) {
+            self::log( 'ScreenshotOne API key not configured — falling back to thum.io' );
+            return self::get_thum_url( $url, $width, $height );
+        }
+
+        return 'https://api.screenshotone.com/take?' . http_build_query( array(
+            'access_key'      => $api_key,
+            'url'             => $url,
+            'viewport_width'  => $width,
+            'viewport_height' => $height,
+            'format'          => 'jpg',
+            'image_quality'   => 80,
+            'block_ads'       => true,
+            'block_cookie_banners' => true,
+            'delay'           => 2,
+        ) );
+    }
+
+    /**
+     * Check if a hostname resolves to a private/local IP address.
+     * Prevents SSRF attacks through screenshot APIs.
+     *
+     * @param string $host Hostname to check.
+     * @return bool True if private/local.
+     */
+    private static function is_private_host( $host ) {
+        // Block obvious local hostnames.
+        $blocked = array( 'localhost', '127.0.0.1', '0.0.0.0', '::1', '[::1]' );
+        if ( in_array( strtolower( $host ), $blocked, true ) ) {
+            return true;
+        }
+
+        // Resolve hostname and check IP ranges.
+        $ip = gethostbyname( $host );
+        if ( $ip === $host ) {
+            return true; // DNS resolution failed.
+        }
+
+        // Check private/reserved IP ranges.
+        return ! filter_var(
+            $ip,
+            FILTER_VALIDATE_IP,
+            FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+        );
+    }
+
+    /**
+     * Extract the domain name from a URL for display purposes.
+     *
+     * @param string $url Full URL.
+     * @return string Domain name (e.g., "openai.com").
+     */
+    private static function get_domain( $url ) {
+        $host = parse_url( $url, PHP_URL_HOST );
+        if ( ! $host ) {
+            return $url;
+        }
+        // Strip 'www.' prefix.
+        return preg_replace( '/^www\./', '', $host );
+    }
+
+    // ==========================================================
+    // Pexels Stock Photos
+    // ==========================================================
 
     /**
      * Search the Pexels API for a photo matching the query.
