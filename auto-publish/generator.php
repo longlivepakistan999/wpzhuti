@@ -161,18 +161,52 @@ Write like Ars Technica — professional, clear, warm but not academic. You're a
 4. Use precise words over generic ones. "The response took 3 seconds" beats "the response was fast" — IF 3 seconds is real.
 5. Don't pad. Every paragraph must teach something or move the reader forward.
 
+=== INFORMATION DENSITY — BREATHING ROOM (CRITICAL) ===
+
+Do NOT pack every paragraph with new facts. Real writers vary the density:
+
+- In a 2000-word article, include 1-2 "breathing" paragraphs that slow the pace: a quick analogy, a rhetorical question, a short aside about why something matters, or a 1-2 sentence transition that isn't a fact dump.
+- These paragraphs are SHORT (2-3 sentences max). They exist to let the reader digest before the next dense section.
+- Place them between the heaviest fact sections — not at the beginning, not at the end.
+- Example of a breathing paragraph: "That's a lot of moving parts. But here's the thing — most of this complexity is hidden from you in practice."
+- Example of another: "Worth pausing here. This pricing detail trips up more people than any other part of the setup."
+- Do NOT overdo it. 1-2 breathing moments per article. The rest should still be dense and useful.
+
 === SOURCE ATTRIBUTION IN TEXT ===
 
-Weave sources into the text naturally:
-- "根据OpenAI官方定价页面，ChatGPT Plus每月$20"
-- "Anthropic的文档显示Claude 3.5 Sonnet支持200K上下文窗口"
-- "社区用户发现，将temperature设为0.7通常能获得更好的创意输出"
-- "官方并没有明确说明这一点，但测试表明..."
+CRITICAL: Vary your citation sentence structures. Never use the same pattern twice in a row.
+
+Mix these patterns (use at least 3 different ones per article):
+- Lead with conclusion, source after: "The context window is 200K tokens (per Anthropic's docs)."
+- Source woven mid-sentence: "According to the pricing page, it's $20/month — but there's a catch."
+- Parenthetical: "You get 200K context (Anthropic docs) which sounds great until you hit the output limit."
+- Casual discovery: "Turns out the free tier actually caps at 40 messages per 3 hours."
+- Contrast pattern: "The docs say X, but in practice Y is what you'll actually see."
+- No-source common knowledge: Just state it without attribution when the fact is obvious.
+
+BAD (all same pattern): "Product launched X. Product supports Y. Product includes Z." — this is a detection signal.
 
 Include 1-3 inline <a> links to real official URLs:
 - ONLY cite URLs you are confident exist (official docs, product pages, blog posts)
 - Use target="_blank" rel="noopener" attributes
 - 0 links is better than a broken link
+
+=== SECTION TRANSITIONS ===
+
+Do NOT make every transition smooth and explanatory. Real writers sometimes just jump.
+
+- 2-3 transitions per article can be abrupt — start the new section directly without explaining why you're switching topics. Readers can follow.
+- 1-2 transitions can be a single short sentence: "Now for the interesting part." or "This is where it gets messy."
+- Only 1-2 transitions should be the "logical bridge" type ("Now that we've covered X, let's look at Y").
+- NEVER use the same transition style twice in a row.
+
+=== FAQ STRUCTURE ===
+
+The 3 FAQ answers MUST have different structures and lengths:
+- One answer: extremely short (2-3 sentences, direct answer, done)
+- One answer: medium, includes a specific scenario or example
+- One answer: slightly longer, addresses a nuance or common misconception
+Do NOT give all three the same rhythm (answer → condition → advice). Break the pattern.
 
 === GOOGLE SEO ===
 
@@ -332,7 +366,8 @@ You will receive a draft article with a "facts" array. You must:
 1. VERIFY FACTS: Cross-check every data point in the article against the facts array. Flag any claim in the article that is NOT supported by the facts list or is not a well-known verifiable fact.
 2. EVALUATE quality: E-E-A-T (4 pillars), burstiness, perplexity — score each 0-100
 3. CHECK for banned words/phrases
-4. DECIDE: All 6 scores >= 80 AND no unverified data AND no banned words → PASSES. Otherwise → REVISE.
+4. CHECK AI FINGERPRINTS: Score the 4 fingerprint dimensions (FP1-FP4, each 0-100)
+5. DECIDE: All 10 scores >= 80 AND no unverified data AND no banned words → PASSES. Otherwise → REVISE.
 
 === FACT VERIFICATION (MOST IMPORTANT) ===
 
@@ -358,6 +393,38 @@ Sentence length variation. CV = std_dev / mean of sentence word counts. Score = 
 
 Word unpredictability. Score based on: contractions, casual expressions, unexpected word choices, varied structures.
 
+=== AI FINGERPRINT DETECTION (4 checks — Target: ALL must pass) ===
+
+These 4 statistical patterns are the strongest AI detection signals. Check each one:
+
+**FP1 — Information Density Uniformity (0-100, target >= 80)**
+Read through the article paragraph by paragraph. Is every single paragraph stuffed with new facts?
+- Score < 60: No breathing room anywhere. Every paragraph introduces new data.
+- Score 60-79: Mild variation but still relentlessly factual throughout.
+- Score >= 80: Has 1-2 short "breathing" paragraphs (analogy, aside, rhetorical question, short transition) between dense sections.
+FIX: Insert 1-2 short breathing paragraphs (2-3 sentences) between the heaviest fact sections. Not filler — a quick reflection, analogy, or "here's why this matters" moment.
+
+**FP2 — Citation Pattern Uniformity (0-100, target >= 80)**
+Look at every sentence that introduces external information. Do they all follow the same structure?
+- Score < 60: All citations use "Product + verb + fact" pattern (e.g., "Docker launched X", "DevPod supports Y", "Claude includes Z").
+- Score 60-79: Slight variation but still mostly the same structure.
+- Score >= 80: Uses 3+ different citation patterns: parenthetical, mid-sentence source, conclusion-first, casual discovery ("turns out..."), contrast ("docs say X but..."), no-source common knowledge.
+FIX: Rewrite citations to use at least 3 different sentence structures. Some lead with conclusion, some bury the source in parentheses, some use casual framing.
+
+**FP3 — Transition Perfection (0-100, target >= 80)**
+Check how sections connect. Is every transition a smooth logical bridge?
+- Score < 60: Every section starts by referencing the previous one or explaining why we're moving on. Mechanical.
+- Score 60-79: Mostly smooth with 1 abrupt transition.
+- Score >= 80: Mix of styles — 1-2 abrupt jumps (section starts directly), 1-2 short casual transitions ("Now the interesting part."), only 1-2 logical bridges.
+FIX: Make 2-3 section transitions abrupt — just start the new topic. Remove the "Now that we've covered X" connectors for most transitions.
+
+**FP4 — FAQ Structure Uniformity (0-100, target >= 80)**
+Read the 3 FAQ answers. Do they all follow the same rhythm?
+- Score < 60: All 3 answers have identical structure (e.g., answer → condition → advice).
+- Score 60-79: Similar lengths with slight variation.
+- Score >= 80: One answer is very short (2-3 sentences, done), one is medium with a scenario, one is longer with nuance. Different rhythms.
+FIX: Rewrite FAQ answers with deliberately different lengths and structures. Make one blunt and short, one include a specific example, one address a misconception.
+
 === BANNED PATTERNS ===
 
 Words: harness, leverage, delve, tapestry, landscape (metaphor), embark, empower, unlock, streamline, revolutionize, cutting-edge, robust, seamless, comprehensive, utilize, facilitate, optimize, innovative, transformative, paradigm, synergy, holistic, myriad
@@ -370,7 +437,7 @@ Transitions: Moreover / Furthermore / Additionally / Consequently / Thus / Hence
 
 Respond with valid JSON only.
 
-IF PASSES (all >= 80, no issues):
+IF PASSES (all 10 scores >= 80, no issues):
 {
   "review": {
     "passed": true,
@@ -380,6 +447,10 @@ IF PASSES (all >= 80, no issues):
     "trust_score": 0-100,
     "burstiness_score": 0-100,
     "perplexity_score": 0-100,
+    "fp1_density_score": 0-100,
+    "fp2_citation_score": 0-100,
+    "fp3_transition_score": 0-100,
+    "fp4_faq_score": 0-100,
     "facts_verified": true,
     "summary": "Brief explanation"
   }
@@ -395,9 +466,14 @@ IF NEEDS REVISION (any < 80 or issues found):
     "trust_score": 0-100,
     "burstiness_score": 0-100,
     "perplexity_score": 0-100,
+    "fp1_density_score": 0-100,
+    "fp2_citation_score": 0-100,
+    "fp3_transition_score": 0-100,
+    "fp4_faq_score": 0-100,
     "unverified_claims": ["claims in article not backed by facts array"],
     "fabricated_data_removed": ["fabricated items replaced"],
     "banned_words_removed": ["banned words replaced"],
+    "fingerprint_fixes": ["specific fixes applied for FP1-FP4"],
     "issues_found": ["other issues"]
   },
   "article": {
@@ -447,14 +523,24 @@ STEP 2 — EVALUATE QUALITY:
 - Score perplexity (word unpredictability, 0-100)
 - Check for banned words/phrases
 
-STEP 3 — DECIDE:
-- ALL 6 scores >= 80 AND facts verified AND no banned words → "passed": true (no article needed)
+STEP 3 — CHECK AI FINGERPRINTS (score each 0-100):
+- FP1: Information density uniformity — is every paragraph packed with facts, or are there 1-2 breathing moments?
+- FP2: Citation pattern uniformity — do all citations use the same "Product + verb + fact" structure, or are there 3+ different patterns?
+- FP3: Transition perfection — are all section transitions smooth logical bridges, or is there a natural mix of abrupt jumps and casual connectors?
+- FP4: FAQ structure uniformity — do all 3 FAQ answers follow the same rhythm, or do they have different lengths and structures?
+
+STEP 4 — DECIDE:
+- ALL 10 scores >= 80 AND facts verified AND no banned words → "passed": true (no article needed)
 - ANY issue found → "passed": false, revise the article
 
 REVISION RULES (only if passed = false):
 - Remove or replace any claim not backed by the facts array
 - Fix failing quality areas — preserve what works
 - Replace banned words with natural alternatives
+- FP1 fix: Insert 1-2 short breathing paragraphs between dense sections
+- FP2 fix: Rewrite citations using at least 3 different sentence structures
+- FP3 fix: Make 2-3 section transitions abrupt, remove "now that we covered X" bridges
+- FP4 fix: Give each FAQ answer a different length and structure
 - Under 2000 words (max 3000)
 - Output valid JSON only
 PROMPT;
@@ -517,6 +603,13 @@ PROMPT;
             $r['burstiness_score'] ?? '?',
             $r['perplexity_score'] ?? '?'
         ) );
+        self::log( sprintf(
+            'Pass 2 fingerprints — FP1 Density: %s, FP2 Citation: %s, FP3 Transition: %s, FP4 FAQ: %s',
+            $r['fp1_density_score'] ?? '?',
+            $r['fp2_citation_score'] ?? '?',
+            $r['fp3_transition_score'] ?? '?',
+            $r['fp4_faq_score'] ?? '?'
+        ) );
 
         $passed = ! empty( $r['passed'] );
 
@@ -543,6 +636,9 @@ PROMPT;
         }
         if ( ! empty( $r['banned_words_removed'] ) ) {
             self::log( 'Banned words removed: ' . implode( ', ', $r['banned_words_removed'] ) );
+        }
+        if ( ! empty( $r['fingerprint_fixes'] ) ) {
+            self::log( 'Fingerprint fixes: ' . implode( '; ', $r['fingerprint_fixes'] ) );
         }
 
         // Extract the revised article.
