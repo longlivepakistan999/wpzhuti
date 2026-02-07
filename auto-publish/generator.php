@@ -210,37 +210,6 @@ The 3 FAQ answers MUST have different structures and lengths:
 - One answer: slightly longer, addresses a nuance or common misconception
 Do NOT give all three the same rhythm (answer → condition → advice). Break the pattern.
 
-=== IMAGES ===
-
-Insert image placeholders in the article content where a visual would help readers. Use this exact HTML comment format:
-
-TWO TYPES of images:
-
-1. STOCK PHOTO (generic/conceptual images):
-<!-- QWE_IMAGE: {"type": "stock", "query": "search terms for stock photo", "alt": "descriptive alt text"} -->
-
-2. SCREENSHOT (real tool/website interface captures):
-<!-- QWE_IMAGE: {"type": "screenshot", "url": "https://example.com/page", "alt": "descriptive alt text"} -->
-
-WHEN TO USE EACH:
-- Use "screenshot" when the article mentions a specific tool, app, or website that readers should see. The URL must be a real, publicly accessible page — NOT a login-required page.
-  Examples: official homepages, documentation pages, pricing pages, public dashboards, API playgrounds.
-  Good URLs: "https://chat.openai.com", "https://docs.anthropic.com", "https://www.midjourney.com"
-  BAD URLs: URLs requiring login, personal dashboards, API endpoints, 404-prone deep links.
-- Use "stock" for conceptual/illustrative images where no specific webpage applies.
-  Examples: "person brainstorming with AI", "team collaborating on code", "data visualization dashboard".
-
-RULES:
-- Insert 2-4 image placeholders per article.
-- Prefer "screenshot" over "stock" when the article discusses specific tools — real UI screenshots are more useful than generic stock photos.
-- Place them BETWEEN paragraphs or sections — never inside a paragraph.
-- For "stock": the "query" should be specific English search terms. "person using laptop AI chatbot interface" not "AI" (too vague).
-- For "screenshot": the "url" must be a real, publicly accessible URL. If unsure whether a URL is accessible, use "stock" instead.
-- The "alt" should describe what the image shows, written for screen readers.
-- Place the FIRST image near the top (after the first 1-2 paragraphs) — this becomes the featured image.
-- Spread remaining images evenly through the article.
-- Do NOT place images inside code blocks, lists, or blockquotes.
-
 === GOOGLE SEO ===
 
 - Title: 50-65 chars, keyword in first half, power word (Guide, How, Best)
@@ -365,7 +334,6 @@ REQUIREMENTS:
 - 500-2500 words. 800-1200 is the sweet spot. Don't pad
 - 1-3 inline links to official docs (only if URL is real)
 - 1 <blockquote> pro tip
-- 2-4 image placeholders (<!-- QWE_IMAGE: {...} -->) spread through the article, first one near the top
 - 3 FAQ Q&As at the end (<h3> questions, <p> answers)
 - End with a concrete next action, not a summary
 - No banned words or patterns from system instructions
@@ -736,7 +704,6 @@ REVISION RULES (only if passed = false):
 - FP3 fix: Make 2-3 section transitions abrupt, remove "now that we covered X" bridges
 - FP4 fix: Give each FAQ answer a different length and structure
 - AIGC fix: Rewrite ONLY the AI-flagged paragraphs. Do NOT touch human-sounding paragraphs. Use the 7 rewrite techniques from system instructions. List each rewrite in "aigc_rewrites".
-- IMAGES: Preserve all <!-- QWE_IMAGE: {...} --> placeholders exactly as-is. Do NOT modify, move, or remove them. They are processed later by the publishing system.
 - 500-2500 words (800-1200 sweet spot)
 - Output valid JSON only
 PROMPT;
