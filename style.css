@@ -1739,6 +1739,29 @@ h6 { font-size: var(--text-base); }
     box-shadow: var(--shadow-md);
 }
 
+.tutorial-content figure.article-image {
+    margin: var(--space-8) 0;
+    padding: 0;
+}
+
+.tutorial-content figure.article-image img {
+    width: 100%;
+    margin: 0;
+}
+
+.tutorial-content figure.article-image figcaption {
+    font-size: var(--text-sm);
+    color: var(--color-text-light);
+    text-align: center;
+    margin-top: var(--space-2);
+    font-style: italic;
+}
+
+.tutorial-content figure.article-image figcaption a {
+    color: var(--color-text-light);
+    text-decoration: underline;
+}
+
 .tutorial-content pre {
     background: #1E293B;
     color: #E2E8F0;

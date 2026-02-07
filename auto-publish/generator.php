@@ -210,6 +210,22 @@ The 3 FAQ answers MUST have different structures and lengths:
 - One answer: slightly longer, addresses a nuance or common misconception
 Do NOT give all three the same rhythm (answer → condition → advice). Break the pattern.
 
+=== IMAGES ===
+
+Insert image placeholders in the article content where a visual would help readers. Use this exact HTML comment format:
+
+<!-- QWE_IMAGE: {"query": "search terms for stock photo", "alt": "descriptive alt text for accessibility"} -->
+
+Rules:
+- Insert 2-4 image placeholders per article (the system will fetch real stock photos).
+- Place them BETWEEN paragraphs or sections — never inside a paragraph.
+- The "query" should be specific English search terms that would find a relevant stock photo. Example: "person using laptop AI chatbot interface" not "AI" (too vague).
+- The "alt" should describe what the image should show, written for screen readers.
+- Place the FIRST image near the top (after the first 1-2 paragraphs) — this becomes the featured image.
+- Spread remaining images evenly through the article.
+- Good placement: after introducing a concept, before a step-by-step section, or between major sections.
+- Do NOT place images inside code blocks, lists, or blockquotes.
+
 === GOOGLE SEO ===
 
 - Title: 50-65 chars, keyword in first half, power word (Guide, How, Best)
@@ -334,6 +350,7 @@ REQUIREMENTS:
 - 500-2500 words. 800-1200 is the sweet spot. Don't pad
 - 1-3 inline links to official docs (only if URL is real)
 - 1 <blockquote> pro tip
+- 2-4 image placeholders (<!-- QWE_IMAGE: {...} -->) spread through the article, first one near the top
 - 3 FAQ Q&As at the end (<h3> questions, <p> answers)
 - End with a concrete next action, not a summary
 - No banned words or patterns from system instructions
@@ -704,6 +721,7 @@ REVISION RULES (only if passed = false):
 - FP3 fix: Make 2-3 section transitions abrupt, remove "now that we covered X" bridges
 - FP4 fix: Give each FAQ answer a different length and structure
 - AIGC fix: Rewrite ONLY the AI-flagged paragraphs. Do NOT touch human-sounding paragraphs. Use the 7 rewrite techniques from system instructions. List each rewrite in "aigc_rewrites".
+- IMAGES: Preserve all <!-- QWE_IMAGE: {...} --> placeholders exactly as-is. Do NOT modify, move, or remove them. They are processed later by the publishing system.
 - 500-2500 words (800-1200 sweet spot)
 - Output valid JSON only
 PROMPT;

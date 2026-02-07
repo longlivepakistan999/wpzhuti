@@ -115,6 +115,26 @@ define( 'QWE_CATEGORIES', serialize( array(
 ) ) );
 
 // ============================================================
+// Image Settings (auto-insert stock photos into articles)
+// ============================================================
+
+// Enable automatic image insertion using Pexels free stock photo API.
+define( 'QWE_IMAGES_ENABLED', true );
+
+// Pexels API key (free: https://www.pexels.com/api/ — 200 requests/hour).
+define( 'QWE_PEXELS_API_KEY', '' );  // Get free key at pexels.com/api
+
+// Number of images to insert per article (2-4 recommended).
+define( 'QWE_IMAGES_PER_ARTICLE', 3 );
+
+// Preferred image orientation: 'landscape', 'portrait', or 'square'.
+define( 'QWE_IMAGE_ORIENTATION', 'landscape' );
+
+// Image size to download: 'original', 'large2x', 'large', 'medium', 'small'.
+// 'large' is recommended (good quality, reasonable file size ~200-400KB).
+define( 'QWE_IMAGE_SIZE', 'large' );
+
+// ============================================================
 // Content language
 // ============================================================
 

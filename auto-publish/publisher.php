@@ -14,6 +14,55 @@ require_once __DIR__ . '/db.php';
 class QWE_Publisher {
 
     /**
+     * Ensure wp_kses_post allows image-related tags and attributes.
+     * Called via wp_kses_allowed_html filter during publishing.
+     *
+     * @param array  $tags    Allowed tags.
+     * @param string $context Context ('post', 'data', etc.).
+     * @return array Modified allowed tags.
+     */
+    public static function allow_image_tags( $tags, $context ) {
+        if ( 'post' !== $context ) {
+            return $tags;
+        }
+
+        // Ensure <figure> allows class.
+        if ( ! isset( $tags['figure'] ) ) {
+            $tags['figure'] = array();
+        }
+        $tags['figure']['class'] = true;
+        $tags['figure']['style'] = true;
+
+        // Ensure <figcaption> is allowed.
+        if ( ! isset( $tags['figcaption'] ) ) {
+            $tags['figcaption'] = array();
+        }
+        $tags['figcaption']['class'] = true;
+
+        // Ensure <img> allows srcset, sizes, loading.
+        if ( ! isset( $tags['img'] ) ) {
+            $tags['img'] = array();
+        }
+        $tags['img']['srcset']  = true;
+        $tags['img']['sizes']   = true;
+        $tags['img']['loading'] = true;
+        $tags['img']['src']     = true;
+        $tags['img']['alt']     = true;
+        $tags['img']['class']   = true;
+        $tags['img']['width']   = true;
+        $tags['img']['height']  = true;
+
+        // Ensure <a> allows target and rel.
+        if ( ! isset( $tags['a'] ) ) {
+            $tags['a'] = array();
+        }
+        $tags['a']['target'] = true;
+        $tags['a']['rel']    = true;
+
+        return $tags;
+    }
+
+    /**
      * Publish an article to WordPress.
      *
      * @param array $article Article data from QWE_Generator.
@@ -40,16 +89,35 @@ class QWE_Publisher {
         // Get or create the tutorial_category term.
         $term_id = self::get_or_create_category( $article['category'] );
 
+        // Process image placeholders BEFORE wp_kses_post (which strips HTML comments).
+        $content      = $article['content'];
+        $image_result = array(
+            'content'           => $content,
+            'featured_image_id' => 0,
+            'attachment_ids'    => array(),
+        );
+
+        if ( defined( 'QWE_IMAGES_ENABLED' ) && QWE_IMAGES_ENABLED ) {
+            $image_result = self::process_images( $content );
+            $content      = $image_result['content'];
+        }
+
+        // Add filter to allow image-related HTML tags/attributes.
+        add_filter( 'wp_kses_allowed_html', array( __CLASS__, 'allow_image_tags' ), 10, 2 );
+
         // Prepare post data.
         $post_data = array(
             'post_title'   => sanitize_text_field( $article['title'] ),
             'post_name'    => $slug,
-            'post_content' => wp_kses_post( $article['content'] ),
+            'post_content' => wp_kses_post( $content ),
             'post_excerpt' => sanitize_text_field( $article['excerpt'] ),
             'post_status'  => QWE_POST_STATUS,
             'post_type'    => 'tutorial',
             'post_author'  => QWE_AUTHOR_ID,
         );
+
+        // Remove filter after sanitization.
+        remove_filter( 'wp_kses_allowed_html', array( __CLASS__, 'allow_image_tags' ), 10 );
 
         // Insert the post.
         $post_id = wp_insert_post( $post_data, true );
@@ -78,6 +146,20 @@ class QWE_Publisher {
 
         // Don't auto-feature.
         update_post_meta( $post_id, '_qwe_featured', '0' );
+
+        // Attach uploaded images to this post and set featured image.
+        if ( ! empty( $image_result['attachment_ids'] ) ) {
+            foreach ( $image_result['attachment_ids'] as $att_id ) {
+                wp_update_post( array(
+                    'ID'          => $att_id,
+                    'post_parent' => $post_id,
+                ) );
+            }
+        }
+        if ( ! empty( $image_result['featured_image_id'] ) ) {
+            set_post_thumbnail( $post_id, $image_result['featured_image_id'] );
+            self::log( "Featured image set: attachment #{$image_result['featured_image_id']}" );
+        }
 
         // Store keyword tracking meta.
         update_post_meta( $post_id, '_qwe_keyword_type', sanitize_text_field( $article['keyword_type'] ) );
@@ -116,6 +198,291 @@ class QWE_Publisher {
         }
 
         return $result['term_id'];
+    }
+
+    // ==========================================================
+    // Image Processing
+    // ==========================================================
+
+    /**
+     * Process image placeholders in raw article content.
+     *
+     * Finds all <!-- QWE_IMAGE: {...} --> placeholders, fetches matching
+     * stock photos from Pexels, uploads them to the WordPress media
+     * library (unattached — caller re-attaches after post insert), and
+     * replaces the placeholders with <figure> elements.
+     *
+     * Must be called BEFORE wp_kses_post() because wp_kses strips HTML comments.
+     *
+     * @param string $content Raw article HTML content with placeholders.
+     * @return array {
+     *     @type string $content           Processed content with <figure> tags.
+     *     @type int    $featured_image_id Attachment ID for featured image (0 if none).
+     *     @type array  $attachment_ids    All uploaded attachment IDs.
+     * }
+     */
+    private static function process_images( $content ) {
+        $result = array(
+            'content'           => $content,
+            'featured_image_id' => 0,
+            'attachment_ids'    => array(),
+        );
+
+        $api_key = defined( 'QWE_PEXELS_API_KEY' ) ? QWE_PEXELS_API_KEY : '';
+
+        if ( empty( $api_key ) ) {
+            self::log( 'Pexels API key not configured — skipping image insertion' );
+            // Strip all placeholders so they don't leak into published content.
+            $result['content'] = preg_replace( '/<!-- QWE_IMAGE: \{[^}]+\} -->/', '', $content );
+            return $result;
+        }
+
+        // Find all image placeholders.
+        $pattern = '/<!-- QWE_IMAGE: (\{[^}]+\}) -->/';
+        if ( ! preg_match_all( $pattern, $content, $matches, PREG_SET_ORDER ) ) {
+            self::log( 'No image placeholders found in content' );
+            return $result;
+        }
+
+        $max_images     = defined( 'QWE_IMAGES_PER_ARTICLE' ) ? (int) QWE_IMAGES_PER_ARTICLE : 3;
+        $orientation    = defined( 'QWE_IMAGE_ORIENTATION' ) ? QWE_IMAGE_ORIENTATION : 'landscape';
+        $size_key       = defined( 'QWE_IMAGE_SIZE' ) ? QWE_IMAGE_SIZE : 'large';
+        $images_inserted = 0;
+
+        // Load required WordPress functions for media handling.
+        if ( ! function_exists( 'media_handle_sideload' ) ) {
+            require_once ABSPATH . 'wp-admin/includes/media.php';
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+            require_once ABSPATH . 'wp-admin/includes/image.php';
+        }
+
+        foreach ( $matches as $match ) {
+            if ( $images_inserted >= $max_images ) {
+                // Remove remaining placeholders without replacing.
+                $content = str_replace( $match[0], '', $content );
+                continue;
+            }
+
+            $image_data = json_decode( $match[1], true );
+            if ( ! $image_data || empty( $image_data['query'] ) ) {
+                self::log( 'Invalid image placeholder JSON: ' . $match[1] );
+                $content = str_replace( $match[0], '', $content );
+                continue;
+            }
+
+            $query   = $image_data['query'];
+            $alt     = ! empty( $image_data['alt'] ) ? $image_data['alt'] : $query;
+
+            // Search Pexels for a matching photo.
+            $photo = self::search_pexels( $api_key, $query, $orientation );
+
+            if ( ! $photo ) {
+                self::log( "Pexels: no results for \"{$query}\" — removing placeholder" );
+                $content = str_replace( $match[0], '', $content );
+                continue;
+            }
+
+            // Get the image URL at the configured size.
+            $image_url = self::get_pexels_image_url( $photo, $size_key );
+
+            if ( ! $image_url ) {
+                $content = str_replace( $match[0], '', $content );
+                continue;
+            }
+
+            // Download and upload to WordPress media library (unattached, post_parent=0).
+            $attachment_id = self::upload_image_to_media( $image_url, $alt, 0, $photo );
+
+            if ( ! $attachment_id ) {
+                self::log( "Failed to upload image for \"{$query}\"" );
+                $content = str_replace( $match[0], '', $content );
+                continue;
+            }
+
+            $result['attachment_ids'][] = $attachment_id;
+
+            // Build the <figure> HTML replacement.
+            $img_src    = wp_get_attachment_url( $attachment_id );
+            $img_srcset = wp_get_attachment_image_srcset( $attachment_id, 'large' );
+            $img_sizes  = wp_get_attachment_image_sizes( $attachment_id, 'large' );
+            $photographer = ! empty( $photo['photographer'] ) ? $photo['photographer'] : '';
+
+            $figure_html = '<figure class="article-image">';
+            $figure_html .= '<img src="' . esc_url( $img_src ) . '"';
+            if ( $img_srcset ) {
+                $figure_html .= ' srcset="' . esc_attr( $img_srcset ) . '"';
+            }
+            if ( $img_sizes ) {
+                $figure_html .= ' sizes="' . esc_attr( $img_sizes ) . '"';
+            }
+            $figure_html .= ' alt="' . esc_attr( $alt ) . '"';
+            $figure_html .= ' loading="lazy" />';
+            if ( $photographer ) {
+                $photo_url = ! empty( $photo['photographer_url'] ) ? $photo['photographer_url'] : '';
+                $figure_html .= '<figcaption>Photo by ';
+                if ( $photo_url ) {
+                    $figure_html .= '<a href="' . esc_url( $photo_url ) . '" target="_blank" rel="noopener">';
+                    $figure_html .= esc_html( $photographer ) . '</a>';
+                } else {
+                    $figure_html .= esc_html( $photographer );
+                }
+                $figure_html .= ' / <a href="https://www.pexels.com" target="_blank" rel="noopener">Pexels</a>';
+                $figure_html .= '</figcaption>';
+            }
+            $figure_html .= '</figure>';
+
+            $content = str_replace( $match[0], $figure_html, $content );
+            $images_inserted++;
+
+            // First image becomes the featured image.
+            if ( 0 === $result['featured_image_id'] ) {
+                $result['featured_image_id'] = $attachment_id;
+            }
+
+            self::log( "Image inserted: \"{$query}\" → attachment #{$attachment_id}" );
+        }
+
+        $result['content'] = $content;
+        self::log( "Images processed: {$images_inserted} inserted" );
+
+        return $result;
+    }
+
+    /**
+     * Search the Pexels API for a photo matching the query.
+     *
+     * Returns the first result that best matches. Uses a random offset
+     * (page 1-3) to avoid always picking the same popular photo.
+     *
+     * @param string $api_key     Pexels API key.
+     * @param string $query       Search terms.
+     * @param string $orientation 'landscape', 'portrait', or 'square'.
+     * @return array|false        Photo data array or false.
+     */
+    private static function search_pexels( $api_key, $query, $orientation = 'landscape' ) {
+        $page = rand( 1, 3 );
+        $url  = 'https://api.pexels.com/v1/search?' . http_build_query( array(
+            'query'       => $query,
+            'orientation' => $orientation,
+            'per_page'    => 5,
+            'page'        => $page,
+        ) );
+
+        $ch = curl_init( $url );
+        curl_setopt_array( $ch, array(
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER     => array(
+                'Authorization: ' . $api_key,
+            ),
+            CURLOPT_TIMEOUT        => 15,
+        ) );
+
+        $response  = curl_exec( $ch );
+        $http_code = curl_getinfo( $ch, CURLINFO_HTTP_CODE );
+        $error     = curl_error( $ch );
+        curl_close( $ch );
+
+        if ( $error ) {
+            self::log( "Pexels cURL error: {$error}" );
+            return false;
+        }
+
+        if ( 200 !== $http_code ) {
+            self::log( "Pexels API HTTP {$http_code}: " . substr( $response, 0, 300 ) );
+            return false;
+        }
+
+        $data = json_decode( $response, true );
+
+        if ( empty( $data['photos'] ) ) {
+            return false;
+        }
+
+        // Pick a random photo from the results for variety.
+        $photos = $data['photos'];
+        return $photos[ array_rand( $photos ) ];
+    }
+
+    /**
+     * Get the image download URL at the configured size from Pexels photo data.
+     *
+     * @param array  $photo    Pexels photo data.
+     * @param string $size_key Size key: 'original', 'large2x', 'large', 'medium', 'small'.
+     * @return string|false    Image URL or false.
+     */
+    private static function get_pexels_image_url( $photo, $size_key = 'large' ) {
+        if ( empty( $photo['src'] ) ) {
+            return false;
+        }
+
+        $src = $photo['src'];
+
+        // Try requested size, fall back through sizes.
+        $fallback_order = array( 'large', 'medium', 'large2x', 'original', 'small' );
+
+        if ( ! empty( $src[ $size_key ] ) ) {
+            return $src[ $size_key ];
+        }
+
+        foreach ( $fallback_order as $key ) {
+            if ( ! empty( $src[ $key ] ) ) {
+                return $src[ $key ];
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Download an image from URL and upload it to the WordPress media library.
+     *
+     * @param string $url           Image URL.
+     * @param string $alt_text      Alt text for the image.
+     * @param int    $post_id       Parent post ID.
+     * @param array  $photo         Pexels photo data (for metadata).
+     * @return int|false            Attachment ID or false.
+     */
+    private static function upload_image_to_media( $url, $alt_text, $post_id, $photo = array() ) {
+        // Download to a temp file.
+        $tmp = download_url( $url, 30 );
+
+        if ( is_wp_error( $tmp ) ) {
+            self::log( 'Image download failed: ' . $tmp->get_error_message() );
+            return false;
+        }
+
+        // Build a filename from the alt text.
+        $filename = sanitize_file_name( substr( sanitize_title( $alt_text ), 0, 60 ) ) . '.jpg';
+
+        $file_array = array(
+            'name'     => $filename,
+            'tmp_name' => $tmp,
+        );
+
+        // Upload to media library.
+        $attachment_id = media_handle_sideload( $file_array, $post_id, $alt_text );
+
+        if ( is_wp_error( $attachment_id ) ) {
+            self::log( 'Media sideload failed: ' . $attachment_id->get_error_message() );
+            @unlink( $tmp );
+            return false;
+        }
+
+        // Set alt text.
+        update_post_meta( $attachment_id, '_wp_attachment_image_alt', sanitize_text_field( $alt_text ) );
+
+        // Store Pexels attribution in attachment meta.
+        if ( ! empty( $photo['photographer'] ) ) {
+            update_post_meta( $attachment_id, '_qwe_photo_credit', sanitize_text_field( $photo['photographer'] ) );
+        }
+        if ( ! empty( $photo['photographer_url'] ) ) {
+            update_post_meta( $attachment_id, '_qwe_photo_credit_url', esc_url_raw( $photo['photographer_url'] ) );
+        }
+        if ( ! empty( $photo['url'] ) ) {
+            update_post_meta( $attachment_id, '_qwe_pexels_url', esc_url_raw( $photo['url'] ) );
+        }
+
+        return $attachment_id;
     }
 
     /**
