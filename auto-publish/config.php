@@ -40,7 +40,8 @@ define( 'QWE_OPENAI_MODEL', 'gpt-4o' );
 define( 'QWE_WEB_SEARCH_ENABLED', true );
 
 // Maximum number of web searches per article generation.
-define( 'QWE_WEB_SEARCH_MAX_USES', 5 );
+// Budget: ~2 for SERP analysis, ~3 for facts, ~3 for edge cases/community.
+define( 'QWE_WEB_SEARCH_MAX_USES', 8 );
 
 // ============================================================
 // Publishing Settings

@@ -51,6 +51,12 @@ class QWE_Generator {
             return false;
         }
 
+        // Check if keyword was flagged as too saturated (no edge cases found).
+        if ( ! empty( $article['edge_cases_insufficient'] ) ) {
+            self::log( "Keyword too saturated (no edge cases found), skipping: {$keyword}" );
+            return false;
+        }
+
         // Log facts used in the article for verification.
         if ( ! empty( $article['facts'] ) && is_array( $article['facts'] ) ) {
             self::log( "Pass 1 facts collected: " . count( $article['facts'] ) );
@@ -59,6 +65,23 @@ class QWE_Generator {
                 $fact_src  = $f['source'] ?? '?';
                 self::log( "  Fact: {$fact_text} [Source: {$fact_src}]" );
             }
+        }
+
+        // Log edge cases.
+        if ( ! empty( $article['edge_cases'] ) && is_array( $article['edge_cases'] ) ) {
+            self::log( "Edge cases found: " . count( $article['edge_cases'] ) );
+            foreach ( $article['edge_cases'] as $ec ) {
+                $ec_type = $ec['type'] ?? '?';
+                $ec_case = $ec['case'] ?? '?';
+                self::log( "  [{$ec_type}] {$ec_case}" );
+            }
+        }
+
+        // Log competitor consensus.
+        if ( ! empty( $article['competitor_consensus'] ) ) {
+            $cc = $article['competitor_consensus'];
+            self::log( "Competitor consensus — structure: " . ( $cc['common_structure'] ?? '?' ) );
+            self::log( "Our differentiation: " . ( $cc['our_differentiation'] ?? '?' ) );
         }
 
         self::log( "Pass 1 draft generated for: {$keyword}" );
@@ -159,16 +182,36 @@ Combine web search results with your existing knowledge. List every verifiable f
 - Community-discovered tips, workarounds, undocumented features
 
 STEP 2 — FIND EDGE CASES (this is where real IG comes from):
-Now that you have both the competitor consensus AND the facts, find the GAP — information that is TRUE (backed by facts) but NOT covered by competitors:
+Now that you have both the competitor consensus AND the facts, find the GAP — information that is TRUE (backed by facts) but NOT covered by competitors.
+
+TIER 1 — Direct edge cases (best IG, try these first):
+Search specifically for: "[tool] issues", "[tool] gotchas", "[tool] reddit problems", "[tool] limitations"
 - Error messages or failure modes that tutorials never mention
 - Config options or parameters that most guides skip
 - Performance differences under non-default conditions (large files, slow networks, edge inputs)
-- Interaction effects between features that are documented separately but never discussed together
-- Real-world gotchas that only show up after extended use, not in a 5-minute demo
 - Pricing traps, quota limits, or throttling behaviors buried in fine print
 - Workarounds the community discovered but no tutorial has formalized
 
-You must include at least 3 edge cases in the article. List them in the "edge_cases" JSON field. Each edge case must be backed by a fact from your facts array.
+TIER 2 — Cross-reference insights (if Tier 1 yields < 3):
+Combine facts that EXIST individually in your collection but NO competitor has connected:
+- Feature A + Feature B interact in a way that matters but is documented separately
+- Official spec X has a practical implication Y that nobody spells out
+- Comparing data point from Source A with data point from Source B reveals something
+These are real facts recombined — not fabricated. Mark them: "type": "cross-reference"
+
+TIER 3 — Honest unknowns (last resort, if Tier 1 + Tier 2 still < 3):
+Point out what the official docs DON'T answer — questions that remain unanswered:
+- "The docs list X pricing but don't clarify whether Y is included"
+- "No official benchmark exists for Z scenario"
+- "Community reports conflict: some see A, others see B — no resolution"
+These are valuable BECAUSE they're honest. Mark them: "type": "unknown"
+Do NOT fill unknowns with guesses. State the gap and move on.
+
+REQUIREMENT: At least 3 edge cases total (any mix of tiers). Each must specify its tier.
+If you cannot find even 3 across all tiers, set "edge_cases_insufficient": true in the JSON — this signals the keyword may not be worth publishing (too saturated, no new angle).
+
+Output format for each edge case:
+{"case": "specific description", "type": "direct|cross-reference|unknown", "backed_by_fact": "which fact"}
 
 STEP 3 — WRITE BASED ONLY ON YOUR FACTS:
 Every claim in the article must come from your collected facts. If a fact is not in your collection, it does not go in the article. No exceptions.
@@ -264,9 +307,10 @@ Respond with valid JSON only. No markdown fences, no extra text:
     "our_differentiation": "How THIS article deliberately differs from the consensus"
   },
   "edge_cases": [
-    {"case": "specific edge case or gotcha", "backed_by_fact": "which fact supports this"},
-    {"case": "another edge case", "backed_by_fact": "its supporting fact"}
+    {"case": "specific edge case", "type": "direct|cross-reference|unknown", "backed_by_fact": "which fact"},
+    {"case": "another edge case", "type": "direct|cross-reference|unknown", "backed_by_fact": "its fact"}
   ],
+  "edge_cases_insufficient": false,
   "facts": [
     {"fact": "the specific fact used", "source": "where it comes from"},
     {"fact": "another fact", "source": "its source"}
@@ -411,7 +455,7 @@ You will receive a draft article with "facts", "competitor_consensus", and "edge
    a. ORIGINALITY + COMPETITOR DIFFERENTIATION — Read the "competitor_consensus" field. Does the article actually AVOID the common structure, common examples, and common talking points listed there? Does "our_differentiation" hold true in the actual content? Does at least one section cover an angle that competitors don't? If the article's structure matches the competitor consensus → FAIL regardless of other scores.
    b. FRESHNESS — Are all facts dated or qualified? Any fact without a clear date must have "as of [date]" or "this may have changed". Flag any potentially outdated pricing, model names, or features.
    c. INFORMATION RHYTHM — Does the article have at least 2 "breathing" paragraphs (analogy, reflection, open question) that don't directly solve a problem? Are the remaining paragraphs high-density and useful?
-1.5. CHECK EDGE CASES — Read the "edge_cases" array. Verify at least 3 edge cases exist, each backed by a fact. Then check the article content: are these edge cases actually present in the article text? Edge cases that exist in the JSON but not in the article body → FAIL.
+1.5. CHECK EDGE CASES — If "edge_cases_insufficient" is true, skip this keyword (return skip_keyword: true). Otherwise: verify at least 3 edge cases exist with valid types (direct/cross-reference/unknown). "direct" and "cross-reference" must be backed by facts. Check article body: each edge case must actually appear in the text. Missing or fabricated edge cases → FAIL.
 2. VERIFY FACTS: Cross-check every data point in the article against the facts array. Flag any claim in the article that is NOT supported by the facts list or is not a well-known verifiable fact.
 3. EVALUATE quality: E-E-A-T (4 pillars), burstiness, perplexity — score each 0-100
 4. CHECK for banned words/phrases
@@ -726,12 +770,15 @@ c. INFORMATION RHYTHM: Count the "breathing" paragraphs (analogy, reflection, op
    - If non-breathing paragraphs contain fluff → FAIL
 
 STEP 1.5 — EDGE CASE VERIFICATION:
+- If "edge_cases_insufficient" is true → the keyword is too saturated to write about. Return {"review": {"passed": false, "skip_keyword": true, "reason": "No edge cases found — topic too saturated"}}.
 - Read the "edge_cases" array. Must have at least 3 entries.
-- Each edge case must reference a fact from the "facts" array ("backed_by_fact" field).
+- Each must have a "type" field: "direct" (real gotcha), "cross-reference" (combined known facts), or "unknown" (honest gap in docs).
+- "direct" and "cross-reference" types must reference a real fact from the "facts" array. "unknown" types must describe a specific unanswered question (not vague).
 - Scan the article body: each edge case must actually appear in the content, not just in the JSON metadata.
 - If edge_cases < 3 → FAIL
 - If any edge case is in the JSON but missing from article body → FAIL
 - If edge cases are generic (e.g., "it may not work sometimes") rather than specific → FAIL
+- If a "direct" edge case has no supporting fact → FAIL (likely fabricated)
 
 STEP 2 — VERIFY FACTS:
 - Cross-check every number, price, date, and spec in the article content against the "facts" array
@@ -767,7 +814,7 @@ STEP 7 — DECIDE:
 
 REVISION RULES (only if passed = false):
 - ORIGINALITY + COMPETITOR fix: Read "competitor_consensus". Reorganize the article to NOT match the common_structure. Replace any examples that overlap with common_examples. Add content that goes beyond common_talking_points. Ensure at least 1 section covers an angle competitors don't.
-- EDGE CASE fix: If < 3 edge cases in article body, add them. Use real gotchas from the facts array — error modes, config traps, performance quirks, pricing fine print. Each must be specific and backed by a fact.
+- EDGE CASE fix: If < 3 edge cases in article body, add them. Prefer "direct" type (real gotchas from facts). If not enough, use "cross-reference" (combine existing facts in a new way). Last resort: "unknown" (honest gaps in docs). Never fabricate — if a direct edge case has no fact backing it, downgrade to "unknown" and frame it as an open question.
 - FRESHNESS fix: Add "as of [date]" or "this may have changed" to every undated fact. Update any clearly outdated info.
 - RHYTHM fix: If < 2 breathing paragraphs, insert them (analogy, reflection, or open question). If > 3, remove extras. If non-breathing paragraphs have fluff, cut it.
 - Remove or replace any claim not backed by the facts array
@@ -845,6 +892,12 @@ PROMPT;
         }
 
         $r = $result['review'];
+
+        // Check if Pass 2 flagged keyword as too saturated.
+        if ( ! empty( $r['skip_keyword'] ) ) {
+            self::log( 'Pass 2: Keyword flagged as too saturated — ' . ( $r['reason'] ?? 'no edge cases' ) );
+            return false;
+        }
 
         // Log the review scores.
         self::log( sprintf(
