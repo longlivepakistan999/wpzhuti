@@ -56,8 +56,8 @@ function qwe_output_structured_data() {
             'datePublished' => get_the_date( 'c' ),
             'dateModified'  => get_the_modified_date( 'c' ),
             'author'        => array(
-                '@type' => 'Organization',
-                'name'  => get_bloginfo( 'name' ),
+                '@type' => 'Person',
+                'name'  => get_the_author(),
             ),
             'publisher'     => array(
                 '@type' => 'Organization',
@@ -129,6 +129,7 @@ function qwe_output_og_tags() {
         echo '<meta property="og:url" content="' . esc_url( get_permalink() ) . '">' . "\n";
         echo '<meta property="article:published_time" content="' . esc_attr( get_the_date( 'c' ) ) . '">' . "\n";
         echo '<meta property="article:modified_time" content="' . esc_attr( get_the_modified_date( 'c' ) ) . '">' . "\n";
+        echo '<meta property="article:author" content="' . esc_attr( get_the_author() ) . '">' . "\n";
         if ( has_post_thumbnail() ) {
             $img_id  = get_post_thumbnail_id();
             $img_url = get_the_post_thumbnail_url( null, 'qwe-tutorial-hero' );

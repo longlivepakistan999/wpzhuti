@@ -199,6 +199,7 @@ Do NOT make every transition smooth and explanatory. Real writers sometimes just
 - 2-3 transitions per article can be abrupt — start the new section directly without explaining why you're switching topics. Readers can follow.
 - 1-2 transitions can be a single short sentence: "Now for the interesting part." or "This is where it gets messy."
 - Only 1-2 transitions should be the "logical bridge" type ("Now that we've covered X, let's look at Y").
+- If a transition feels too jarring after an abrupt jump, use a casual connector: "Actually", "The catch is", "But here's where it gets weird", "So about that...", "One more thing." — these are fine. Just avoid the stiff academic ones (Moreover, Furthermore, Additionally, etc.).
 - NEVER use the same transition style twice in a row.
 
 === FAQ STRUCTURE ===
@@ -423,7 +424,7 @@ Check how sections connect. Is every transition a smooth logical bridge?
 - Score < 60: Every section starts by referencing the previous one or explaining why we're moving on. Mechanical.
 - Score 60-79: Mostly smooth with 1 abrupt transition.
 - Score >= 80: Mix of styles — 1-2 abrupt jumps (section starts directly), 1-2 short casual transitions ("Now the interesting part."), only 1-2 logical bridges.
-FIX: Make 2-3 section transitions abrupt — just start the new topic. Remove the "Now that we've covered X" connectors for most transitions.
+FIX: Make 2-3 section transitions abrupt — just start the new topic. Remove the "Now that we've covered X" connectors for most transitions. If an abrupt jump feels too jarring, use a casual connector ("Actually", "The catch is", "But here's where it gets weird") instead of a stiff academic one.
 
 **FP4 — FAQ Structure Uniformity (0-100, target >= 80)**
 Read the 3 FAQ answers. Do they all follow the same rhythm?
@@ -721,7 +722,7 @@ REVISION RULES (only if passed = false):
 - Replace ALL GenAI overused phrases using the 5-category dictionary from system instructions
 - FP1 fix: Insert 1-2 short breathing paragraphs between dense sections
 - FP2 fix: Rewrite citations using at least 3 different sentence structures
-- FP3 fix: Make 2-3 section transitions abrupt, remove "now that we covered X" bridges
+- FP3 fix: Make 2-3 section transitions abrupt, remove "now that we covered X" bridges. If logic jumps too hard, use casual connectors ("Actually", "The catch is", "But here's where it gets weird") — never stiff academic transitions
 - FP4 fix: Give each FAQ answer a different length and structure
 - AIGC fix: Rewrite ONLY the AI-flagged paragraphs. Do NOT touch human-sounding paragraphs. Use the 7 rewrite techniques from system instructions. List each rewrite in "aigc_rewrites".
 - 500-2500 words (800-1200 sweet spot)

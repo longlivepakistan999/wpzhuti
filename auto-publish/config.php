@@ -55,6 +55,9 @@ define( 'QWE_POST_STATUS', 'publish' );
 // WordPress author ID for published articles.
 define( 'QWE_AUTHOR_ID', 1 );
 
+// Author display name (shown on articles and in structured data).
+define( 'QWE_AUTHOR_NAME', 'Jack Tom' );
+
 // ============================================================
 // Trending Settings
 // ============================================================

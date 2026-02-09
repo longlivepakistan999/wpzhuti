@@ -822,6 +822,11 @@ h6 { font-size: var(--text-base); }
     font-size: var(--text-sm);
 }
 
+.course-card__author {
+    font-weight: 600;
+    color: var(--color-text);
+}
+
 .course-card__reading-time {
     color: var(--color-text-muted);
 }
@@ -1597,6 +1602,11 @@ h6 { font-size: var(--text-base); }
     display: flex;
     align-items: center;
     gap: var(--space-1);
+}
+
+.tutorial-meta__author {
+    font-weight: 600;
+    color: var(--color-text);
 }
 
 .tutorial-meta__difficulty {

@@ -15,6 +15,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 function qwe_tutorial_meta() {
     echo '<div class="tutorial-meta">';
 
+    // Author name.
+    $author_name = get_the_author();
+    echo '<span class="tutorial-meta__author" itemprop="author" itemscope itemtype="https://schema.org/Person">';
+    echo '<span itemprop="name">' . esc_html( $author_name ) . '</span>';
+    echo '</span>';
+
     echo '<span class="tutorial-meta__date">';
     echo '<time datetime="' . esc_attr( get_the_date( 'c' ) ) . '">' . esc_html( get_the_date() ) . '</time>';
     echo '</span>';

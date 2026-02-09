@@ -37,6 +37,9 @@ class QWE_Publisher {
             return false;
         }
 
+        // Ensure author display name matches config.
+        self::sync_author_name();
+
         // Get or create the tutorial_category term.
         $term_id = self::get_or_create_category( $article['category'] );
 
@@ -116,6 +119,28 @@ class QWE_Publisher {
         }
 
         return $result['term_id'];
+    }
+
+    /**
+     * Ensure the WP author's display_name matches QWE_AUTHOR_NAME.
+     *
+     * Runs once per session (static flag prevents repeated DB writes).
+     */
+    private static function sync_author_name() {
+        static $synced = false;
+        if ( $synced || ! defined( 'QWE_AUTHOR_NAME' ) || ! QWE_AUTHOR_NAME ) {
+            return;
+        }
+        $synced = true;
+
+        $user = get_userdata( QWE_AUTHOR_ID );
+        if ( $user && $user->display_name !== QWE_AUTHOR_NAME ) {
+            wp_update_user( array(
+                'ID'           => QWE_AUTHOR_ID,
+                'display_name' => QWE_AUTHOR_NAME,
+            ) );
+            self::log( 'Author display name updated to: ' . QWE_AUTHOR_NAME );
+        }
     }
 
     /**

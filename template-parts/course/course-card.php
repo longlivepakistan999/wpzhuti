@@ -36,6 +36,7 @@
         <p class="course-card__excerpt" itemprop="description"><?php echo esc_html( get_the_excerpt() ); ?></p>
 
         <div class="course-card__meta">
+            <span class="course-card__author" itemprop="author"><?php echo esc_html( get_the_author() ); ?></span>
             <span class="course-card__reading-time">
                 <?php echo esc_html( qwe_reading_time() ); ?>
             </span>
