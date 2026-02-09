@@ -106,6 +106,11 @@ class QWE_Generator {
             $article['tags'] = array_map( array( __CLASS__, 'clean_ai_fingerprint' ), $article['tags'] );
         }
 
+        // Post-process: replace any remaining banned words (zero API cost safety net).
+        $article['title']   = self::check_banned_words( $article['title'] );
+        $article['excerpt'] = self::check_banned_words( $article['excerpt'] );
+        $article['content'] = self::check_banned_words( $article['content'] );
+
         // Validate category is one of ours.
         if ( ! isset( $categories[ $article['category'] ] ) ) {
             // Default to first matching category or chatgpt-llms.
@@ -455,14 +460,14 @@ You will receive a draft article with "facts", "competitor_consensus", and "edge
    a. ORIGINALITY + COMPETITOR DIFFERENTIATION — Read the "competitor_consensus" field. Does the article actually AVOID the common structure, common examples, and common talking points listed there? Does "our_differentiation" hold true in the actual content? Does at least one section cover an angle that competitors don't? If the article's structure matches the competitor consensus → FAIL regardless of other scores.
    b. FRESHNESS — Are all facts dated or qualified? Any fact without a clear date must have "as of [date]" or "this may have changed". Flag any potentially outdated pricing, model names, or features.
    c. INFORMATION RHYTHM — Does the article have at least 2 "breathing" paragraphs (analogy, reflection, open question) that don't directly solve a problem? Are the remaining paragraphs high-density and useful?
-1.5. CHECK EDGE CASES — If "edge_cases_insufficient" is true, skip this keyword (return skip_keyword: true). Otherwise: verify at least 3 edge cases exist with valid types (direct/cross-reference/unknown). "direct" and "cross-reference" must be backed by facts. Check article body: each edge case must actually appear in the text. Missing or fabricated edge cases → FAIL.
-2. VERIFY FACTS: Cross-check every data point in the article against the facts array. Flag any claim in the article that is NOT supported by the facts list or is not a well-known verifiable fact.
-3. EVALUATE quality: E-E-A-T (4 pillars), burstiness, perplexity — score each 0-100
-4. CHECK for banned words/phrases
-5. CHECK AI FINGERPRINTS: Score the 4 fingerprint dimensions (FP1-FP4, each 0-100)
-6. SCAN GENAI PHRASES: Find all overused GenAI phrases (5 categories in system instructions). Count them, replace every one.
-7. AIGC SCAN: Read each paragraph, estimate overall AIGC rate (0-100%). Target: ≤ 50%. This is a HARD requirement.
-8. DECIDE: All 10 quality scores >= 80 AND aigc_rate <= 50 AND genai_phrases_found == 0 (after replacement) AND originality/freshness/people-first all pass AND no unverified data AND no banned words → PASSES. Otherwise → REVISE.
+2. CHECK EDGE CASES — If "edge_cases_insufficient" is true, skip this keyword (return skip_keyword: true). Otherwise: verify at least 3 edge cases exist with valid types (direct/cross-reference/unknown). "direct" and "cross-reference" must be backed by facts. Check article body: each edge case must actually appear in the text. Missing or fabricated edge cases → FAIL.
+3. VERIFY FACTS: Cross-check every data point in the article against the facts array. Flag any claim in the article that is NOT supported by the facts list or is not a well-known verifiable fact.
+4. EVALUATE quality: E-E-A-T (4 pillars), burstiness, perplexity — score each 0-100
+5. CHECK for banned words/phrases
+6. CHECK AI FINGERPRINTS: Score the 4 fingerprint dimensions (FP1-FP4, each 0-100)
+7. SCAN GENAI PHRASES: Find all overused GenAI phrases (5 categories in system instructions). Count them, replace every one.
+8. AIGC SCAN: Read each paragraph, estimate overall AIGC rate (0-100%). Target: ≤ 50%. This is a HARD requirement.
+9. DECIDE: All 10 quality scores >= 80 AND aigc_rate <= 50 AND genai_phrases_found == 0 (after replacement) AND originality/freshness/people-first all pass AND no unverified data AND no banned words → PASSES. Otherwise → REVISE.
 
 === FACT VERIFICATION (MOST IMPORTANT) ===
 
@@ -538,123 +543,54 @@ Read the article paragraph by paragraph. For each paragraph, ask: "Would an AI d
 
 AIGC RATE = (number of AI-flagged paragraphs / total paragraphs) * 100
 
-REWRITE TECHNIQUES (apply to AI-flagged paragraphs):
+REWRITE TECHNIQUES (apply ONLY to AI-flagged paragraphs, preserve human-sounding ones):
 
-1. BREAK THE CADENCE — Rewrite the sentence rhythm. Split a long sentence into two fragments. Merge two short ones. Start a sentence with "But", "And", "So", or a prepositional phrase. Interrupt mid-thought with a dash.
-   BEFORE: "Claude 3.5 Sonnet offers a 200K context window, which is significantly larger than its predecessor. This allows users to process much longer documents in a single request."
-   AFTER: "200K context window. That's what Claude 3.5 Sonnet gives you — roughly 4x what the previous version handled. Enough to throw an entire codebase at it and still have room for a detailed prompt."
+1. BREAK THE CADENCE — Split/merge sentences. Start with "But"/"And"/"So". Use dashes.
+   "X offers Y, which is significantly Z." → "Y. That's what X gives you — 4x the old version."
 
-2. INJECT SPECIFICITY — Replace vague qualifiers with concrete details or drop them entirely.
-   BEFORE: "The performance improvement is quite significant compared to the previous version."
-   AFTER: "Responses come back in about 2 seconds now. The old model? More like 8."
+2. INJECT SPECIFICITY — Replace vague qualifiers with numbers or drop them.
+   "quite significant improvement" → "Responses: 2 seconds now. Old model? More like 8."
 
-3. FRONT-LOAD THE INTERESTING PART — Don't build up to the point. Lead with it.
-   BEFORE: "When comparing the two tools, it becomes clear that Tool A has several advantages in terms of speed and accuracy."
-   AFTER: "Tool A is faster. Not by a little — 3x faster on the benchmark that matters most."
+3. FRONT-LOAD — Lead with the point, don't build up.
+   "comparing the two, it becomes clear A has advantages" → "A is faster. Not by a little — 3x faster."
 
-4. ADD HUMAN TEXTURE — Insert a short reaction, a caveat, a "hmm" moment.
-   BEFORE: "The free tier provides 100 messages per day, which should be sufficient for most casual users."
-   AFTER: "100 messages a day on the free tier. Sounds like a lot, but you'll burn through that in one debugging session."
+4. ADD HUMAN TEXTURE — Insert reactions, caveats, "hmm" moments.
+   "free tier provides 100 messages, sufficient for most" → "100 messages/day free. Sounds like a lot, but one debugging session burns through that."
 
-5. VARY PARAGRAPH OPENINGS — Never start 2 consecutive paragraphs the same way. Mix: questions, statements, fragments, numbers, quotes, imperatives.
-   BAD: "The API supports... The API also includes... The API provides..."
-   GOOD: "The API supports... Pricing? Straightforward at... One catch, though: the rate limit..."
+5. VARY PARAGRAPH OPENINGS — Never start 2 paragraphs the same way. Mix: questions, statements, fragments, numbers.
+   BAD: "The API supports... The API also... The API provides..."
+   GOOD: "The API supports... Pricing? Simple at... One catch: the rate limit..."
 
-6. KILL BALANCED STRUCTURES — Real writers don't give equal weight to everything. Make one point dominant, compress others.
-   BEFORE: "While Option A provides better speed, Option B offers superior accuracy. Option A costs less, but Option B includes more features."
-   AFTER: "Option A is faster and cheaper. Option B is more accurate. For most people? A. The speed difference alone makes the decision."
+6. KILL BALANCED STRUCTURES — Make one point dominant, compress others.
+   "While A has speed, B offers accuracy. A costs less, B has features." → "A: faster and cheaper. B: more accurate. For most people? A."
 
-7. USE INCOMPLETE THOUGHTS & CALLBACKS — Reference something said earlier, leave a thought slightly unfinished, or add a parenthetical that breaks rhythm.
-   "Remember that 200K context limit from earlier? Here's where it actually matters."
-   "The setup takes about 5 minutes (assuming your API key works on the first try — mine didn't)."
-
-IMPORTANT: Do NOT rewrite every paragraph. Only rewrite the AI-flagged ones. Preserve paragraphs that already read as human-written. Over-rewriting makes the article feel inconsistent.
+7. INCOMPLETE THOUGHTS & CALLBACKS — Reference earlier points, use parentheticals.
+   "Remember that 200K limit? Here's where it matters."
+   "Setup: ~5 min (assuming your API key works first try — mine didn't)."
 
 === GENAI OVERUSED PHRASES (SCAN & REPLACE) ===
 
-GenAI models statistically overuse certain phrases learned during training. These phrases appear 10-100x more frequently in AI text than in human text. Scan the article for ALL of these, count them, and replace every instance found.
+GenAI models overuse certain phrases 10-100x more than humans. Scan the ENTIRE article and replace EVERY instance.
 
-CATEGORY 1 — FILLER HEDGES (sound cautious/academic, humans rarely write this way):
-- "It's worth noting that" → delete, or just state the fact directly
-- "It's worth mentioning that" → delete
-- "It should be noted that" → delete
-- "It bears mentioning" → delete
-- "One thing to keep in mind" → "Watch out for this:" or just state it
-- "What's particularly interesting is" → "The interesting part:" or just start with the fact
-- "What makes this stand out" → just describe why
-- "Perhaps most importantly" → "The big one:" or just state it
-- "Interestingly enough" → delete, or "Funny thing:" if actually surprising
-- "It goes without saying" → delete entirely (if it goes without saying, don't say it)
-- "Needless to say" → delete entirely
-- "As you might expect" → delete, or just state the fact
+CAT 1 — FILLER HEDGES:
+DELETE entirely: "It's worth noting/mentioning that", "It should be noted that", "It bears mentioning", "Interestingly enough", "It goes without saying", "Needless to say", "As you might expect"
+SIMPLIFY: "One thing to keep in mind" → "Watch out:" | "What's particularly interesting is" / "What makes this stand out" → just state the fact | "Perhaps most importantly" → "The big one:" or just state it
 
-CATEGORY 2 — OVERUSED VERBS (GenAI loves these, humans use more specific verbs):
-- "navigate" (metaphor) → "figure out", "work through", "handle", or be specific
-- "explore" (as in "let's explore") → "look at", "try", "test", "check out"
-- "ensure" → "make sure", "check that", or be specific about what to do
-- "enhance" → "improve", "speed up", "make better", or say what actually changes
-- "boost" → say the specific improvement: "cuts load time from 3s to 1s"
-- "foster" → "build", "create", "encourage"
-- "cater to" → "work for", "fit", "help"
-- "tailor" (verb) → "customize", "adjust", "set up for"
-- "underscore" → "show", "prove", "highlight" (or just delete — the fact speaks for itself)
-- "coupled with" → "plus", "along with", "and"
-- "spearhead" → "lead", "start", "run"
-- "pave the way" → "make it possible", "open the door" or delete
+CAT 2 — OVERUSED VERBS (replace with specific ones):
+"navigate" → figure out/handle | "explore" (as "let's explore") → look at/try/test | "ensure" → make sure/check | "enhance" → improve, or say what changes | "boost" → state the specific gain | "foster" → build/create | "cater to" → work for/fit | "tailor" → customize/adjust | "underscore" → show, or delete | "coupled with" → plus/and | "spearhead" → lead/start | "pave the way" → make possible, or delete
 
-CATEGORY 3 — OVERUSED ADJECTIVES/ADVERBS (vague intensifiers humans don't overuse):
-- "crucial" → "important", "key", or delete (let context convey importance)
-- "vital" → "important", "needed", or delete
-- "pivotal" → "key", "big", or describe why
-- "remarkable" → say what's actually remarkable: "3x faster" beats "remarkably fast"
-- "notable" → delete or be specific
-- "significant" / "significantly" → use a number: "a 40% drop" not "a significant drop"
-- "substantial" / "substantially" → use a number or delete
-- "arguably" → "probably", "in most cases", or commit to the claim
-- "incredibly" → delete or use actual numbers
-- "exceptionally" → delete or use actual numbers
-- "particularly" → delete or restructure: "X is good for Y especially" → "X works best for Y"
-- "generally speaking" → "usually", "most of the time", or delete
-- "for the most part" → "mostly", "usually"
+CAT 3 — OVERUSED ADJECTIVES/ADVERBS (use numbers instead, or delete):
+"crucial/vital/pivotal" → important/key, or delete | "remarkable/notable" → be specific (e.g. "3x faster") | "significant(ly)/substantial(ly)" → use a number | "arguably" → probably, or commit | "incredibly/exceptionally" → delete or use numbers | "particularly" → restructure sentence | "generally speaking" / "for the most part" → usually/mostly
 
-CATEGORY 4 — STRUCTURAL CLICHÉS (GenAI-favorite sentence templates):
-- "Whether you're a X or a Y, ..." → delete, just address the reader directly
-- "From X to Y, ..." → be specific about one thing, not vague about the range
-- "Not only X, but also Y" → simplify: "X. And Y too." or "X, plus Y"
-- "While X, Y" at paragraph start → too many of these = AI signal. Limit to 1 per article
-- "This is where X comes in" → just start talking about X
-- "This is particularly true when" → "Especially when" or just describe the scenario
-- "The beauty of X is" → describe the actual benefit
-- "When it comes to X" → "For X" or just start the sentence about X
-- "In terms of" → "For", or restructure the sentence
-- "At the end of the day" → "Ultimately", or just state the conclusion
-- "It all comes down to" → "The key is" or just state it
-- "On the flip side" → "But", "The downside:", or just state the contrast
-- "That said" / "That being said" → "But", or just start the contrast. Limit to 1 per article
-- "With that in mind" → delete, just continue
-- "Here's the thing" → ok once per article, but never twice
-- "The reality is" → delete, just state the reality
-- "The good news is" → ok once per article, never twice
+CAT 4 — STRUCTURAL CLICHÉS:
+DELETE: "Whether you're a X or Y", "This is where X comes in", "The beauty of X is", "The reality is", "With that in mind", "It all comes down to"
+MAX 1/article: "While X, Y" at paragraph start, "That said"/"That being said", "Here's the thing", "The good news is"
+REWRITE: "From X to Y" → be specific | "Not only X but also Y" → "X. And Y too." | "This is particularly true when" → "Especially when" | "When it comes to"/"In terms of" → "For" | "At the end of the day" → state conclusion | "On the flip side" → "But"
 
-CATEGORY 5 — OVERUSED NOUNS (abstract nouns humans avoid in casual tech writing):
-- "realm" → "area", "world", "space" or be specific
-- "ecosystem" → "tools", "platform", "setup", or be specific
-- "landscape" → name the actual things: "the market" or just list the competitors
-- "framework" (metaphor) → "approach", "method", "system"
-- "journey" → "process", "experience", or describe the actual steps
-- "endeavor" → "project", "work", "effort"
-- "plethora" → "a lot of", "dozens of", or a real number
-- "multitude" → "many", "a lot of", or a real number
-- "implications" → say what the actual effect is
-- "nuances" → describe the specific nuance instead of saying the word
+CAT 5 — OVERUSED NOUNS (use specific terms):
+"realm" → area/space | "ecosystem" → tools/platform | "landscape" → name actual things | "framework" (metaphor) → approach/method | "journey" → process | "endeavor" → project/work | "plethora/multitude" → "a lot of" or a number | "implications" → say the actual effect | "nuances" → describe the specific nuance
 
-REPLACEMENT RULES:
-1. Count total GenAI phrases found in the article → report as "genai_phrases_found"
-2. Replace every instance. Do NOT leave any.
-3. For each replacement, choose the most natural alternative that fits the sentence context.
-4. If a replacement sounds awkward, restructure the entire sentence instead.
-5. Some phrases (marked "delete") should simply be removed — the sentence is usually stronger without them.
-6. Track what you replaced → report as "genai_phrases_replaced" array
+RULES: Count all → "genai_phrases_found". Replace every one → "genai_phrases_replaced" array. If awkward, restructure the sentence. Phrases marked "delete" should be removed (sentence is stronger without them).
 
 === BANNED PATTERNS (ZERO TOLERANCE) ===
 
@@ -769,7 +705,7 @@ c. INFORMATION RHYTHM: Count the "breathing" paragraphs (analogy, reflection, op
    - If 4+ breathing paragraphs → FAIL (too much filler)
    - If non-breathing paragraphs contain fluff → FAIL
 
-STEP 1.5 — EDGE CASE VERIFICATION:
+STEP 2 — EDGE CASE VERIFICATION:
 - If "edge_cases_insufficient" is true → the keyword is too saturated to write about. Return {"review": {"passed": false, "skip_keyword": true, "reason": "No edge cases found — topic too saturated"}}.
 - Read the "edge_cases" array. Must have at least 3 entries.
 - Each must have a "type" field: "direct" (real gotcha), "cross-reference" (combined known facts), or "unknown" (honest gap in docs).
@@ -780,35 +716,35 @@ STEP 1.5 — EDGE CASE VERIFICATION:
 - If edge cases are generic (e.g., "it may not work sometimes") rather than specific → FAIL
 - If a "direct" edge case has no supporting fact → FAIL (likely fabricated)
 
-STEP 2 — VERIFY FACTS:
+STEP 3 — VERIFY FACTS:
 - Cross-check every number, price, date, and spec in the article content against the "facts" array
 - Flag any claim that is NOT supported by the facts list and is not common knowledge
 - Check that sources are labeled in the text ("根据官方文档", "社区反馈", etc.)
 
-STEP 3 — EVALUATE QUALITY:
+STEP 4 — EVALUATE QUALITY:
 - Score E-E-A-T (4 pillars, each 0-100)
 - Score burstiness (sentence length variation, 0-100)
 - Score perplexity (word unpredictability, 0-100)
 - Check for banned words/phrases
 
-STEP 4 — CHECK AI FINGERPRINTS (score each 0-100):
+STEP 5 — CHECK AI FINGERPRINTS (score each 0-100):
 - FP1: Information density uniformity — is every paragraph packed with facts, or are there 1-2 breathing moments?
 - FP2: Citation pattern uniformity — do all citations use the same "Product + verb + fact" structure, or are there 3+ different patterns?
 - FP3: Transition perfection — are all section transitions smooth logical bridges, or is there a natural mix of abrupt jumps and casual connectors?
 - FP4: FAQ structure uniformity — do all 3 FAQ answers follow the same rhythm, or do they have different lengths and structures?
 
-STEP 5 — SCAN GENAI OVERUSED PHRASES:
+STEP 6 — SCAN GENAI OVERUSED PHRASES:
 - Scan the entire article for overused GenAI phrases (5 categories in system instructions: filler hedges, overused verbs, overused adjectives/adverbs, structural clichés, overused nouns).
 - Count total instances found → "genai_phrases_found"
 - Replace EVERY instance using the replacement rules from system instructions. List each replacement in "genai_phrases_replaced".
 - Any article with genai_phrases_found > 0 must be revised (phrases must be replaced).
 
-STEP 6 — AIGC RATE SCAN (HARD LIMIT ≤ 50%):
+STEP 7 — AIGC RATE SCAN (HARD LIMIT ≤ 50%):
 - Read each paragraph. Flag it as "AI-written" if it has 2+ signals: uniform cadence, textbook structure, hedging phrases, listing patterns, vague quantifiers, mirror structure, balanced comparisons, summary repetition, or uniform sentence length.
 - Calculate: aigc_rate = (flagged paragraphs / total paragraphs) * 100
 - If aigc_rate > 50%: article MUST be revised. Rewrite only the flagged paragraphs using techniques from system instructions.
 
-STEP 7 — DECIDE:
+STEP 8 — DECIDE:
 - ALL 10 quality scores >= 80 AND aigc_rate <= 50 AND genai_phrases_found == 0 (after replacement) AND originality/freshness/people-first all pass AND facts verified AND no banned words → "passed": true
 - ANY issue found → "passed": false, revise the article
 
@@ -1018,10 +954,19 @@ PROMPT;
             ),
         );
 
+        // Structure system prompt for prompt caching.
+        // Cached system prompts cost ~90% less on input tokens.
+        // TTL is 5 min — benefits 2nd/3rd articles in the same run.
         $payload_data = array(
             'model'      => $model,
             'max_tokens' => 8192,
-            'system'     => $system_prompt,
+            'system'     => array(
+                array(
+                    'type'          => 'text',
+                    'text'          => $system_prompt,
+                    'cache_control' => array( 'type' => 'ephemeral' ),
+                ),
+            ),
             'messages'   => $messages,
         );
 
@@ -1061,6 +1006,7 @@ PROMPT;
                     'Content-Type: application/json',
                     'x-api-key: ' . $api_key,
                     'anthropic-version: 2023-06-01',
+                    'anthropic-beta: prompt-caching-2024-07-31',
                 ),
                 CURLOPT_TIMEOUT        => $timeout,
             ) );
@@ -1394,6 +1340,112 @@ PROMPT;
         $text = preg_replace( '/\n{3,}/', "\n\n", $text );
 
         return trim( $text );
+    }
+
+    // ==========================================================
+    // Post-Processing: Banned Word Check (zero API cost)
+    // ==========================================================
+
+    /**
+     * Replace banned words/phrases in text as a PHP-level safety net.
+     *
+     * Catches any banned words that Pass 2 missed. Runs after generation
+     * at zero API cost. Protects code blocks and HTML attributes.
+     *
+     * @param string $text Article HTML content.
+     * @return string Cleaned text.
+     */
+    private static function check_banned_words( $text ) {
+        if ( empty( $text ) ) {
+            return $text;
+        }
+
+        // Protect <code> and <pre> blocks from replacement.
+        $protected = array();
+        $counter   = 0;
+        $text = preg_replace_callback( '/<(code|pre)[^>]*>.*?<\/\1>/si', function( $m ) use ( &$protected, &$counter ) {
+            $key = "___PROTECTED_{$counter}___";
+            $protected[ $key ] = $m[0];
+            $counter++;
+            return $key;
+        }, $text );
+
+        // Banned words → safe replacements (whole word, case-insensitive).
+        $banned_words = array(
+            'harness'         => 'use',
+            'leverage'        => 'use',
+            'delve'           => 'look into',
+            'tapestry'        => 'mix',
+            'embark'          => 'start',
+            'empower'         => 'help',
+            'unlock'          => 'enable',
+            'streamline'      => 'simplify',
+            'revolutionize'   => 'change',
+            'cutting-edge'    => 'latest',
+            'robust'          => 'strong',
+            'seamless'        => 'smooth',
+            'comprehensive'   => 'complete',
+            'utilize'         => 'use',
+            'facilitate'      => 'help',
+            'innovative'      => 'new',
+            'transformative'  => 'important',
+            'paradigm'        => 'model',
+            'synergy'         => 'combination',
+            'holistic'        => 'complete',
+            'myriad'          => 'many',
+        );
+
+        // Banned phrases (longer strings first).
+        $banned_phrases = array(
+            'In the ever-evolving'       => 'As',
+            "It's important to note"     => 'Note:',
+            "Whether you're a beginner or" => '',
+            'Take it to the next level'  => 'improve',
+            "Let's dive in"              => "Let's start",
+            'Game changer'               => 'Major improvement',
+            'In conclusion'              => 'To sum up',
+        );
+
+        // Banned transitions (sentence-start only).
+        $banned_transitions = array(
+            'Moreover'      => 'Also',
+            'Furthermore'   => 'Also',
+            'Additionally'  => 'Also',
+            'Consequently'  => 'So',
+            'Thus'          => 'So',
+            'Hence'         => 'So',
+            'In essence'    => '',
+            'Notably'       => '',
+            'Certainly'     => '',
+            'Undoubtedly'   => '',
+            'Essentially'   => '',
+        );
+
+        // 1. Replace phrases first (longer matches).
+        foreach ( $banned_phrases as $phrase => $replacement ) {
+            $text = str_ireplace( $phrase, $replacement, $text );
+        }
+
+        // 2. Replace "In today's" pattern (case-insensitive).
+        $text = preg_replace( "/\bIn today's\b/i", 'Currently,', $text );
+
+        // 3. Replace transitions at sentence boundaries.
+        foreach ( $banned_transitions as $word => $replacement ) {
+            $pattern = '/(?<=^|[.!?]\s|>\s?)' . preg_quote( $word, '/' ) . '\b/im';
+            $text = preg_replace( $pattern, $replacement, $text );
+        }
+
+        // 4. Replace individual banned words (whole word).
+        foreach ( $banned_words as $word => $replacement ) {
+            $text = preg_replace( '/\b' . preg_quote( $word, '/' ) . '\b/i', $replacement, $text );
+        }
+
+        // Restore protected blocks.
+        foreach ( $protected as $key => $value ) {
+            $text = str_replace( $key, $value, $text );
+        }
+
+        return $text;
     }
 
     // ==========================================================
