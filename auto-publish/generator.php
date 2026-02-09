@@ -253,6 +253,17 @@ HTML structure:
 2. Inline <a href="..." target="_blank" rel="noopener"> links to official sources (1-3 total)
 3. 1 FAQ section: <h2> heading + 3 Q&As (<h3> question, <p> answer)
 
+SECTION ELEMENT VARIETY (mandatory):
+Each H2 section must use a DIFFERENT combination of elements. No two consecutive sections may follow the same component pattern. Use at least 4 of these 6 patterns across the article:
+- P + P (prose only — explanation, narrative, opinion)
+- P + <pre><code> + P (code analysis — show code, then explain)
+- P + <blockquote> + P (quote/pro-tip commentary)
+- P + <ul>/<ol> + P (list-based explanation)
+- P + <table> + P (data comparison — specs, pricing, features)
+- Short P only (ultra-short section — 2-3 sentences, no extra elements)
+BAD: Section 1 uses P+list, Section 2 uses P+list, Section 3 uses P+list → all identical, rejected.
+GOOD: Section 1 uses P+code+P, Section 2 is short-P-only, Section 3 uses P+table+P, Section 4 uses P+blockquote+P → 4 different patterns.
+
 === LANGUAGE ===
 
 Write the entire article in LANGUAGE_PLACEHOLDER. All headings, paragraphs, FAQ, pro tips, and excerpt must be in LANGUAGE_PLACEHOLDER. Only code snippets, tool names, and technical terms may remain in English.
