@@ -123,7 +123,7 @@ These 3 rules override everything else. Every article must satisfy all 3:
 
 === FACTS-FIRST METHODOLOGY ===
 
-Before writing ANYTHING, you must first collect facts. This is your #1 rule:
+Before writing ANYTHING, you must first research the competition and collect facts. This is your #1 rule:
 
 STEP 0 — WEB SEARCH (if you have the web_search tool):
 You have access to a web search tool. USE IT before writing to get the latest, most accurate facts:
@@ -134,6 +134,21 @@ You have access to a web search tool. USE IT before writing to get the latest, m
 - Check up-to-date comparison data between tools
 Search first, collect facts from results, THEN write. Cite what you find.
 
+STEP 0.5 — SERP ANALYSIS (CRITICAL — this is the real differentiator):
+Search for the keyword itself (e.g., "how to use [tool]", "[tool] tutorial"). Read the top results. Extract the COMPETITOR CONSENSUS — what every article already covers:
+- What structure do they all use? (e.g., "What is X → Why → How → Compare → FAQ")
+- What examples do they all repeat? (e.g., same demo from official docs)
+- What talking points do they all share? (e.g., same 3 pros/cons, same use cases)
+- What sections do they all include?
+
+Record this consensus. It becomes your NEGATIVE CONSTRAINT — everything in the competitor consensus is OFF LIMITS as your article's main structure or primary angle. You must:
+- Use a DIFFERENT organizational structure than the consensus
+- Choose DIFFERENT examples than the ones every tutorial repeats
+- Cover at least 1 angle that NONE of the top results cover
+- If every competitor leads with "What is X", you do NOT lead with "What is X"
+
+Output the consensus in the "competitor_consensus" JSON field so Pass 2 can verify you actually avoided it.
+
 STEP 1 — COLLECT FACTS:
 Combine web search results with your existing knowledge. List every verifiable fact:
 - Official pricing, model names, version numbers, release dates
@@ -143,23 +158,27 @@ Combine web search results with your existing knowledge. List every verifiable f
 - Comparisons: what each tool can/cannot do, official benchmarks
 - Community-discovered tips, workarounds, undocumented features
 
-STEP 2 — WRITE BASED ONLY ON YOUR FACTS:
+STEP 2 — FIND EDGE CASES (this is where real IG comes from):
+Now that you have both the competitor consensus AND the facts, find the GAP — information that is TRUE (backed by facts) but NOT covered by competitors:
+- Error messages or failure modes that tutorials never mention
+- Config options or parameters that most guides skip
+- Performance differences under non-default conditions (large files, slow networks, edge inputs)
+- Interaction effects between features that are documented separately but never discussed together
+- Real-world gotchas that only show up after extended use, not in a 5-minute demo
+- Pricing traps, quota limits, or throttling behaviors buried in fine print
+- Workarounds the community discovered but no tutorial has formalized
+
+You must include at least 3 edge cases in the article. List them in the "edge_cases" JSON field. Each edge case must be backed by a fact from your facts array.
+
+STEP 3 — WRITE BASED ONLY ON YOUR FACTS:
 Every claim in the article must come from your collected facts. If a fact is not in your collection, it does not go in the article. No exceptions.
 
-STEP 3 — LABEL SOURCES HONESTLY:
+STEP 4 — LABEL SOURCES HONESTLY:
 Every data point must be attributed:
 - Official data: "根据OpenAI官方文档", "according to Anthropic's pricing page"
 - Community knowledge: "社区用户反馈", "a common workaround found on Reddit"
 - General knowledge: "based on standard API practices", "this is how most LLMs handle it"
 - Uncertain: "this may vary by region", "as of early 2025" — be honest about what you're not sure of
-
-STEP 4 — 3-5 UNIQUE INSIGHTS:
-Each article must contain at least 3-5 genuinely useful information points that readers won't easily find by skimming official docs. Examples:
-- A hidden setting that changes output quality
-- A pricing gotcha that's buried in the fine print
-- A specific prompt structure that works better than the obvious approach
-- A limitation that the official docs downplay or don't mention
-- A comparison data point between two tools that requires actual research
 
 === WRITING STYLE ===
 
@@ -238,6 +257,16 @@ Respond with valid JSON only. No markdown fences, no extra text:
   "excerpt": "Meta description (145-160 chars)",
   "category": "category-slug",
   "difficulty": "beginner|intermediate|advanced",
+  "competitor_consensus": {
+    "common_structure": "What structure the top results all use (e.g., 'What is X → Why → How → Compare → FAQ')",
+    "common_examples": ["example every tutorial repeats", "another repeated example"],
+    "common_talking_points": ["talking point every article shares", "another one"],
+    "our_differentiation": "How THIS article deliberately differs from the consensus"
+  },
+  "edge_cases": [
+    {"case": "specific edge case or gotcha", "backed_by_fact": "which fact supports this"},
+    {"case": "another edge case", "backed_by_fact": "its supporting fact"}
+  ],
   "facts": [
     {"fact": "the specific fact used", "source": "where it comes from"},
     {"fact": "another fact", "source": "its source"}
@@ -247,6 +276,8 @@ Respond with valid JSON only. No markdown fences, no extra text:
 }
 
 The "facts" array must list every key data point used in the article with its source. Minimum 5 facts. This is how we verify nothing was fabricated.
+The "competitor_consensus" object is REQUIRED — it proves you analyzed the SERP before writing.
+The "edge_cases" array must have at least 3 entries, each backed by a fact.
 
 HTML structure:
 1. 4-6 <h2> tutorial sections (with <h3>, <p>, <pre><code>, <ol>/<ul>, <strong>, <blockquote> pro tips 1-2, <em>)
@@ -336,11 +367,11 @@ Categories (pick best match):
 {{TONE}}
 
 REQUIREMENTS:
-- WEB SEARCH FIRST: If you have the web_search tool, search for the latest info on this topic BEFORE writing. Look up current pricing, features, official docs, and recent updates.
-- FACTS FIRST: Collect all verifiable facts (from web search + your knowledge) about this topic before writing. List them in the "facts" JSON field with sources.
+- SERP ANALYSIS FIRST: Search for this keyword. Read the top results. Extract what EVERY competitor covers (structure, examples, talking points). Record it in "competitor_consensus". This is your negative constraint — your article must deliberately differ.
+- WEB SEARCH FOR FACTS: Search for the latest info on this topic. Look up current pricing, features, official docs, and recent updates.
+- FACTS + EDGE CASES: Collect all verifiable facts. Then find the GAP — things that are true but competitors don't cover. List at least 3 edge cases in "edge_cases" (error modes, config gotchas, performance traps, pricing fine print, community workarounds).
 - Every number, price, spec, and data point in the article MUST come from your collected facts. Do not invent anything.
 - Label sources honestly in the text: "根据官方文档", "社区用户反馈", "测试表明" etc.
-- Include 3-5 unique insights readers can't easily find elsewhere (hidden settings, pricing gotchas, undocumented behaviors, real comparison data)
 - Keyword in first 100 words, in one H2, and in the excerpt
 - 500-2500 words. 800-1200 is the sweet spot. Don't pad
 - 1-3 inline links to official docs (only if URL is real)
@@ -374,12 +405,13 @@ You are a fact-checker and quality reviewer for QWE AI Academy (qwe.edu.pl). You
 
 === YOUR TASK ===
 
-You will receive a draft article with a "facts" array. You must:
+You will receive a draft article with "facts", "competitor_consensus", and "edge_cases" arrays. You must:
 
 1. CHECK GOOGLE CONTENT QUALITY (3 mandatory checks):
-   a. ORIGINALITY — Does the article use a different structure than the standard tutorial template for this topic? Does at least one section cover an angle other tutorials wouldn't? Are the examples original (not from docs)?
+   a. ORIGINALITY + COMPETITOR DIFFERENTIATION — Read the "competitor_consensus" field. Does the article actually AVOID the common structure, common examples, and common talking points listed there? Does "our_differentiation" hold true in the actual content? Does at least one section cover an angle that competitors don't? If the article's structure matches the competitor consensus → FAIL regardless of other scores.
    b. FRESHNESS — Are all facts dated or qualified? Any fact without a clear date must have "as of [date]" or "this may have changed". Flag any potentially outdated pricing, model names, or features.
    c. INFORMATION RHYTHM — Does the article have at least 2 "breathing" paragraphs (analogy, reflection, open question) that don't directly solve a problem? Are the remaining paragraphs high-density and useful?
+1.5. CHECK EDGE CASES — Read the "edge_cases" array. Verify at least 3 edge cases exist, each backed by a fact. Then check the article content: are these edge cases actually present in the article text? Edge cases that exist in the JSON but not in the article body → FAIL.
 2. VERIFY FACTS: Cross-check every data point in the article against the facts array. Flag any claim in the article that is NOT supported by the facts list or is not a well-known verifiable fact.
 3. EVALUATE quality: E-E-A-T (4 pillars), burstiness, perplexity — score each 0-100
 4. CHECK for banned words/phrases
@@ -678,10 +710,12 @@ DRAFT ARTICLE:
 {{DRAFT_JSON}}
 
 STEP 1 — GOOGLE CONTENT QUALITY CHECK (mandatory):
-a. ORIGINALITY: Is the article structure different from what you'd find in a standard tutorial on this topic? (NOT "What is X → Why use X → How → Compare → FAQ"). Does at least one section cover an angle other tutorials on this topic wouldn't cover? Are the examples the author's own, not recycled from official docs?
-   - If the structure matches the standard template → FAIL
-   - If all examples are from docs/common tutorials → FAIL
-   - If no section offers a unique angle → FAIL
+a. ORIGINALITY + COMPETITOR DIFFERENTIATION: Read the "competitor_consensus" field. Compare it against the actual article:
+   - Does the article's structure match the "common_structure"? → FAIL
+   - Does the article reuse examples from "common_examples"? → FAIL
+   - Does the article only cover "common_talking_points" without going beyond? → FAIL
+   - Does the "our_differentiation" claim actually hold true in the content? → if not, FAIL
+   - Does at least one section cover an angle competitors don't? → if not, FAIL
 b. FRESHNESS: Does every fact have a date or qualifier? Check each data point:
    - If a fact has a clear date → OK
    - If a fact has no date and could be outdated → must add "as of [date]" or "this may have changed"
@@ -690,6 +724,14 @@ c. INFORMATION RHYTHM: Count the "breathing" paragraphs (analogy, reflection, op
    - If 0-1 breathing paragraphs → FAIL (too dense, reads like a reference doc)
    - If 4+ breathing paragraphs → FAIL (too much filler)
    - If non-breathing paragraphs contain fluff → FAIL
+
+STEP 1.5 — EDGE CASE VERIFICATION:
+- Read the "edge_cases" array. Must have at least 3 entries.
+- Each edge case must reference a fact from the "facts" array ("backed_by_fact" field).
+- Scan the article body: each edge case must actually appear in the content, not just in the JSON metadata.
+- If edge_cases < 3 → FAIL
+- If any edge case is in the JSON but missing from article body → FAIL
+- If edge cases are generic (e.g., "it may not work sometimes") rather than specific → FAIL
 
 STEP 2 — VERIFY FACTS:
 - Cross-check every number, price, date, and spec in the article content against the "facts" array
@@ -724,7 +766,8 @@ STEP 7 — DECIDE:
 - ANY issue found → "passed": false, revise the article
 
 REVISION RULES (only if passed = false):
-- ORIGINALITY fix: Reorganize the article away from standard template. Add at least one section with a unique angle. Replace doc-sourced examples with original ones.
+- ORIGINALITY + COMPETITOR fix: Read "competitor_consensus". Reorganize the article to NOT match the common_structure. Replace any examples that overlap with common_examples. Add content that goes beyond common_talking_points. Ensure at least 1 section covers an angle competitors don't.
+- EDGE CASE fix: If < 3 edge cases in article body, add them. Use real gotchas from the facts array — error modes, config traps, performance quirks, pricing fine print. Each must be specific and backed by a fact.
 - FRESHNESS fix: Add "as of [date]" or "this may have changed" to every undated fact. Update any clearly outdated info.
 - RHYTHM fix: If < 2 breathing paragraphs, insert them (analogy, reflection, or open question). If > 3, remove extras. If non-breathing paragraphs have fluff, cut it.
 - Remove or replace any claim not backed by the facts array
