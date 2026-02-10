@@ -47,12 +47,14 @@ function qwe_output_structured_data() {
 
     if ( is_singular( 'tutorial' ) || is_singular( 'post' ) ) {
         $post = get_post();
+        $ld_desc = get_post_meta( $post->ID, '_qwe_meta_description', true );
+        $ld_desc = $ld_desc ? $ld_desc : get_the_excerpt();
 
         $data = array(
             '@context'      => 'https://schema.org',
             '@type'         => 'Article',
             'headline'      => get_the_title(),
-            'description'   => get_the_excerpt(),
+            'description'   => $ld_desc,
             'datePublished' => get_the_date( 'c' ),
             'dateModified'  => get_the_modified_date( 'c' ),
             'author'        => array(
@@ -123,9 +125,11 @@ function qwe_output_og_tags() {
         echo '<meta property="og:description" content="' . esc_attr( get_bloginfo( 'description' ) ) . '">' . "\n";
         echo '<meta property="og:url" content="' . esc_url( home_url( '/' ) ) . '">' . "\n";
     } elseif ( is_singular() ) {
+        $og_desc = get_post_meta( get_the_ID(), '_qwe_meta_description', true );
+        $og_desc = $og_desc ? $og_desc : get_the_excerpt();
         echo '<meta property="og:type" content="article">' . "\n";
         echo '<meta property="og:title" content="' . esc_attr( get_the_title() ) . '">' . "\n";
-        echo '<meta property="og:description" content="' . esc_attr( get_the_excerpt() ) . '">' . "\n";
+        echo '<meta property="og:description" content="' . esc_attr( $og_desc ) . '">' . "\n";
         echo '<meta property="og:url" content="' . esc_url( get_permalink() ) . '">' . "\n";
         echo '<meta property="article:published_time" content="' . esc_attr( get_the_date( 'c' ) ) . '">' . "\n";
         echo '<meta property="article:modified_time" content="' . esc_attr( get_the_modified_date( 'c' ) ) . '">' . "\n";
@@ -160,6 +164,10 @@ add_action( 'wp_head', 'qwe_output_og_tags', 5 );
 
 /**
  * Add meta description tag.
+ *
+ * For tutorials: uses _qwe_meta_description (CTR-optimized) if available,
+ * falls back to the post excerpt. The meta_description is specifically
+ * written for search result click-through, while excerpt is for cards.
  */
 function qwe_meta_description() {
     $description = '';
@@ -167,7 +175,9 @@ function qwe_meta_description() {
     if ( is_front_page() ) {
         $description = get_bloginfo( 'description' );
     } elseif ( is_singular() ) {
-        $description = get_the_excerpt();
+        // Prefer CTR-optimized meta description over generic excerpt.
+        $meta_desc = get_post_meta( get_the_ID(), '_qwe_meta_description', true );
+        $description = $meta_desc ? $meta_desc : get_the_excerpt();
     } elseif ( is_post_type_archive( 'tutorial' ) ) {
         $description = __( 'Free AI tutorials - Learn ChatGPT, AI art, AI coding, and more at QWE AI Academy', 'qwe-developer-flavor' );
     } elseif ( is_tax( 'tutorial_category' ) ) {

@@ -97,19 +97,26 @@ class QWE_Generator {
         $article['keyword'] = $keyword;
         $article['keyword_type'] = $keyword_type;
 
+        // Ensure meta_description exists (fallback to excerpt if AI didn't generate it).
+        if ( empty( $article['meta_description'] ) ) {
+            $article['meta_description'] = $article['excerpt'];
+        }
+
         // Post-process: strip AI fingerprints from all text fields.
-        $article['title']   = self::clean_ai_fingerprint( $article['title'] );
-        $article['excerpt'] = self::clean_ai_fingerprint( $article['excerpt'] );
-        $article['content'] = self::clean_ai_fingerprint( $article['content'] );
-        $article['slug']    = self::clean_ai_fingerprint( $article['slug'] );
+        $article['title']            = self::clean_ai_fingerprint( $article['title'] );
+        $article['excerpt']          = self::clean_ai_fingerprint( $article['excerpt'] );
+        $article['meta_description'] = self::clean_ai_fingerprint( $article['meta_description'] );
+        $article['content']          = self::clean_ai_fingerprint( $article['content'] );
+        $article['slug']             = self::clean_ai_fingerprint( $article['slug'] );
         if ( ! empty( $article['tags'] ) ) {
             $article['tags'] = array_map( array( __CLASS__, 'clean_ai_fingerprint' ), $article['tags'] );
         }
 
         // Post-process: replace any remaining banned words (zero API cost safety net).
-        $article['title']   = self::check_banned_words( $article['title'] );
-        $article['excerpt'] = self::check_banned_words( $article['excerpt'] );
-        $article['content'] = self::check_banned_words( $article['content'] );
+        $article['title']            = self::check_banned_words( $article['title'] );
+        $article['excerpt']          = self::check_banned_words( $article['excerpt'] );
+        $article['meta_description'] = self::check_banned_words( $article['meta_description'] );
+        $article['content']          = self::check_banned_words( $article['content'] );
 
         // Validate category is one of ours.
         if ( ! isset( $categories[ $article['category'] ] ) ) {
@@ -305,7 +312,15 @@ Do NOT give all three the same rhythm (answer → condition → advice). Break t
 === GOOGLE SEO ===
 
 - Title: 50-65 chars, keyword in first half, power word (Guide, How, Best)
-- Excerpt: 145-160 chars, keyword included, benefit-driven
+- Excerpt: 145-160 chars, keyword included — factual content summary for cards and archive pages
+- Meta Description (SEPARATE from excerpt): 145-160 chars — this appears in Google search results. CTR-optimized:
+  * Open with a hook: surprising fact, bold claim, or problem statement
+  * Create a curiosity gap: hint at value WITHOUT giving it away ("...the workaround nobody mentions", "...most people get this wrong")
+  * Include keyword naturally in the first half
+  * End with a benefit or action: "Here's what actually works." / "This changes everything."
+  * NEVER summarize the first paragraph — meta_description is an AD for the article
+  * GOOD: "Claude's 200K context sounds great - until you hit the hidden output limit. Here's the real cap, plus 3 workarounds that actually work."
+  * BAD: "This article explains how to use Claude's context window and its limitations."
 - Slug: short, keyword-rich, lowercase-with-dashes
 - Keyword in first 100 words and in at least one H2
 - H2 for main sections, H3 for sub-steps
@@ -327,7 +342,8 @@ Respond with valid JSON only. No markdown fences, no extra text:
 {
   "title": "SEO title (50-65 chars)",
   "slug": "url-slug",
-  "excerpt": "Meta description (145-160 chars)",
+  "excerpt": "Content summary for cards (145-160 chars)",
+  "meta_description": "CTR-optimized description for Google search results (145-160 chars) — hook + curiosity gap + benefit. DIFFERENT from excerpt.",
   "category": "category-slug",
   "difficulty": "beginner|intermediate|advanced",
   "competitor_consensus": {
@@ -692,6 +708,7 @@ IF NEEDS REVISION (any quality score < 80, OR aigc_rate > 50, OR GenAI phrases f
     "title": "revised title",
     "slug": "revised-slug",
     "excerpt": "revised excerpt",
+    "meta_description": "revised CTR-optimized description (hook + curiosity gap + benefit, 145-160 chars)",
     "category": "category-slug",
     "difficulty": "beginner|intermediate|advanced",
     "content": "revised HTML content",

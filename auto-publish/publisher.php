@@ -79,6 +79,11 @@ class QWE_Publisher {
         // Set difficulty level.
         update_post_meta( $post_id, '_qwe_difficulty', sanitize_text_field( $article['difficulty'] ) );
 
+        // Save CTR-optimized meta description (used by seo.php for <meta name="description">).
+        if ( ! empty( $article['meta_description'] ) ) {
+            update_post_meta( $post_id, '_qwe_meta_description', sanitize_text_field( $article['meta_description'] ) );
+        }
+
         // Don't auto-feature.
         update_post_meta( $post_id, '_qwe_featured', '0' );
 
