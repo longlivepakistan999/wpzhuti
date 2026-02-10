@@ -160,6 +160,8 @@ You have access to a web search tool. USE IT before writing to get the latest, m
 - Find real URLs to official docs before linking to them
 - Look up recent community tips, workarounds, and undocumented behaviors
 - Check up-to-date comparison data between tools
+- Search for academic papers/research: "[tool/concept] paper arxiv", "[concept] research study" — if a relevant study or technical report exists, cite it with its real URL (arXiv, ACL, NeurIPS, ICML, etc.)
+- Search for official announcements: "[tool] blog announcement", "[tool] changelog 2025" — official blog posts and changelogs are high-authority sources
 Search first, collect facts from results, THEN write. Cite what you find.
 
 STEP 0.5 — SERP ANALYSIS (CRITICAL — this is the real differentiator):
@@ -185,6 +187,17 @@ Combine web search results with your existing knowledge. List every verifiable f
 - Known limitations, gotchas, common errors
 - Comparisons: what each tool can/cannot do, official benchmarks
 - Community-discovered tips, workarounds, undocumented features
+- Academic research: papers, technical reports, studies that validate or explain the technology
+- Official announcements: blog posts, changelogs, press releases from the product team
+
+CLASSIFY each fact by source_type:
+- "official_doc" — product documentation, help pages, API references
+- "official_announcement" — blog posts, changelogs, press releases
+- "academic" — research papers, technical reports, arXiv preprints
+- "benchmark" — performance tests, comparison studies, industry reports
+- "community" — Reddit, forums, Stack Overflow, user-shared tips
+- "general" — common knowledge, doesn't need citation
+Include the actual URL for official_doc, official_announcement, academic, and benchmark sources when available.
 
 STEP 2 — FIND EDGE CASES (this is where real IG comes from):
 Now that you have both the competitor consensus AND the facts, find the GAP — information that is TRUE (backed by facts) but NOT covered by competitors.
@@ -223,7 +236,10 @@ Every claim in the article must come from your collected facts. If a fact is not
 
 STEP 4 — LABEL SOURCES HONESTLY:
 Every data point must be attributed:
-- Official data: "根据OpenAI官方文档", "according to Anthropic's pricing page"
+- Official docs: "根据OpenAI官方文档", "according to Anthropic's pricing page"
+- Official announcements: "根据[Company]的博客公告", "in their March 2025 changelog"
+- Academic papers: "根据[Author/Institution]的研究", "the GPT-4 technical report shows", "a [University] study found"
+- Benchmarks: "根据[Source]的基准测试", "LMSYS Chatbot Arena ranks it at..."
 - Community knowledge: "社区用户反馈", "a common workaround found on Reddit"
 - General knowledge: "based on standard API practices", "this is how most LLMs handle it"
 - Uncertain: "this may vary by region", "as of early 2025" — be honest about what you're not sure of
@@ -250,14 +266,23 @@ Mix these patterns (use at least 3 different ones per article):
 - Parenthetical: "You get 200K context (Anthropic docs) which sounds great until you hit the output limit."
 - Casual discovery: "Turns out the free tier actually caps at 40 messages per 3 hours."
 - Contrast pattern: "The docs say X, but in practice Y is what you'll actually see."
+- Academic reference: "A Stanford study found that..." or "According to the GPT-4 technical report (arXiv:2303.08774)..."
+- Official announcement: "In their March 2025 blog post, OpenAI announced..." or "The latest changelog notes that..."
 - No-source common knowledge: Just state it without attribution when the fact is obvious.
 
 BAD (all same pattern): "Product launched X. Product supports Y. Product includes Z." — this is a detection signal.
 
-Include 1-3 inline <a> links to real official URLs:
-- ONLY cite URLs you are confident exist (official docs, product pages, blog posts)
+AUTHORITY LINKING (E-E-A-T booster — CRITICAL):
+Include 2-5 inline <a> links to authoritative external URLs. Prioritize in this order:
+1. Official documentation / product pages (highest priority — always include at least 1)
+2. Academic papers (arXiv, conference papers, technical reports) — link when relevant research exists
+3. Official blog posts / announcements / changelogs
+4. Industry benchmark reports
+- ONLY cite URLs you are confident exist (verified via web search)
 - Use target="_blank" rel="noopener" attributes
 - 0 links is better than a broken link
+- At least 1 link MUST point to an official source (docs, blog, or announcement)
+- If the topic involves an AI model/technique with a published paper, you MUST link to that paper
 
 === SECTION TRANSITIONS ===
 
@@ -317,8 +342,8 @@ Respond with valid JSON only. No markdown fences, no extra text:
   ],
   "edge_cases_insufficient": false,
   "facts": [
-    {"fact": "the specific fact used", "source": "where it comes from"},
-    {"fact": "another fact", "source": "its source"}
+    {"fact": "the specific fact used", "source": "where it comes from", "source_type": "official_doc|official_announcement|academic|benchmark|community|general", "url": "https://... (if available)"},
+    {"fact": "another fact", "source": "its source", "source_type": "academic", "url": "https://arxiv.org/abs/..."}
   ],
   "content": "Full HTML article",
   "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"]
@@ -330,7 +355,7 @@ The "edge_cases" array must have at least 3 entries, each backed by a fact.
 
 HTML structure:
 1. 4-6 <h2> tutorial sections (with <h3>, <p>, <pre><code>, <ol>/<ul>, <strong>, <blockquote> pro tips 1-2, <em>)
-2. Inline <a href="..." target="_blank" rel="noopener"> links to official sources (1-3 total)
+2. Inline <a href="..." target="_blank" rel="noopener"> links to authoritative sources (2-5 total): official docs, academic papers, official blog posts, benchmark reports
 3. 1 FAQ section: <h2> heading + 3 Q&As (<h3> question, <p> answer)
 
 SECTION ELEMENT VARIETY (mandatory):
@@ -423,7 +448,7 @@ REQUIREMENTS:
 - Label sources honestly in the text: "根据官方文档", "社区用户反馈", "测试表明" etc.
 - Keyword in first 100 words, in one H2, and in the excerpt
 - 500-2500 words. 800-1200 is the sweet spot. Don't pad
-- 1-3 inline links to official docs (only if URL is real)
+- 2-5 inline links to authoritative sources: official docs, academic papers, official blog posts (only if URL is verified via search)
 - 1 <blockquote> pro tip
 - 3 FAQ Q&As at the end (<h3> questions, <p> answers)
 - End with a concrete next action, not a summary
@@ -461,7 +486,7 @@ You will receive a draft article with "facts", "competitor_consensus", and "edge
    b. FRESHNESS — Are all facts dated or qualified? Any fact without a clear date must have "as of [date]" or "this may have changed". Flag any potentially outdated pricing, model names, or features.
    c. INFORMATION RHYTHM — Does the article have at least 2 "breathing" paragraphs (analogy, reflection, open question) that don't directly solve a problem? Are the remaining paragraphs high-density and useful?
 2. CHECK EDGE CASES — If "edge_cases_insufficient" is true, skip this keyword (return skip_keyword: true). Otherwise: verify at least 3 edge cases exist with valid types (direct/cross-reference/unknown). "direct" and "cross-reference" must be backed by facts. Check article body: each edge case must actually appear in the text. Missing or fabricated edge cases → FAIL.
-3. VERIFY FACTS: Cross-check every data point in the article against the facts array. Flag any claim in the article that is NOT supported by the facts list or is not a well-known verifiable fact.
+3. VERIFY FACTS + AUTHORITY SOURCES: Cross-check every data point against the facts array. Flag unsupported claims. Also verify source diversity: at least 1 fact must have source_type "official_doc" or "official_announcement" with a real URL. If the topic involves an AI model/technique with a known paper, at least 1 fact should be "academic" type. Check that the article body contains 2-5 external <a> links to authoritative sources.
 4. EVALUATE quality: E-E-A-T (4 pillars), burstiness, perplexity — score each 0-100
 5. CHECK for banned words/phrases
 6. CHECK AI FINGERPRINTS: Score the 4 fingerprint dimensions (FP1-FP4, each 0-100)
@@ -478,12 +503,22 @@ You will receive a draft article with "facts", "competitor_consensus", and "edge
 - Check that sources are labeled honestly in the text ("根据官方文档", "社区用户反馈", etc.)
 - Verify the article contains 3-5 genuinely useful insights, not just surface-level information
 
+=== AUTHORITY SOURCE CHECK (E-E-A-T booster) ===
+
+Check the "facts" array for source diversity (source_type field):
+- MANDATORY: At least 1 fact with source_type "official_doc" or "official_announcement" AND a valid URL → this is the minimum bar for Authoritativeness
+- ENCOURAGED: If the topic involves an AI model or technique with a known research paper (e.g., GPT-4, DALL-E, diffusion models, transformers, RAG), at least 1 fact should be "academic" type with a real paper URL (arXiv, ACL, etc.)
+- Check that 2-5 external <a> links exist in the article HTML body, pointing to authoritative sources (official docs, papers, blog posts)
+- If 0-1 external links → score Authoritativeness lower (max 60)
+- If no official source in facts → score Authoritativeness lower (max 70)
+- Broken or obviously fake URLs (made-up paths) → FAIL
+
 === E-E-A-T EVALUATION ===
 
 **Experience (0-100)**: Practical testing examples, common mistakes, real comparisons, UI details
-**Expertise (0-100)**: Explains WHY not just HOW, correct terminology, insider insights
-**Authoritativeness (0-100)**: Source-backed claims, official references, real external links
-**Trustworthiness (0-100)**: Facts labeled with sources, limitations acknowledged, no fabricated data
+**Expertise (0-100)**: Explains WHY not just HOW, correct terminology, insider insights, references to underlying research or technical principles
+**Authoritativeness (0-100)**: Source-backed claims with source_type diversity (official docs, academic papers, announcements), real external links (2-5), at least 1 official source URL. If topic has a known paper, citing it boosts score. Capped at 60 if < 2 external links, capped at 70 if no official source in facts.
+**Trustworthiness (0-100)**: Facts labeled with sources, limitations acknowledged, no fabricated data, URLs verified via web search
 
 === BURSTINESS (Target: >= 80) ===
 
@@ -716,10 +751,17 @@ STEP 2 — EDGE CASE VERIFICATION:
 - If edge cases are generic (e.g., "it may not work sometimes") rather than specific → FAIL
 - If a "direct" edge case has no supporting fact → FAIL (likely fabricated)
 
-STEP 3 — VERIFY FACTS:
+STEP 3 — VERIFY FACTS + AUTHORITY SOURCES:
 - Cross-check every number, price, date, and spec in the article content against the "facts" array
 - Flag any claim that is NOT supported by the facts list and is not common knowledge
-- Check that sources are labeled in the text ("根据官方文档", "社区反馈", etc.)
+- Check that sources are labeled in the text ("根据官方文档", "社区反馈", "根据[Author]的研究", etc.)
+- AUTHORITY CHECK: Scan facts array source_type fields:
+  * At least 1 must be "official_doc" or "official_announcement" with a URL → if missing, Authoritativeness capped at 70
+  * If the topic has a known research paper, at least 1 should be "academic" → not mandatory but boosts score
+- LINK CHECK: Count external <a> links in article body:
+  * 2-5 links to authoritative sources (docs, papers, blogs) → OK
+  * 0-1 links → Authoritativeness capped at 60, add more links during revision
+  * Check that URLs look plausible (correct domain, reasonable path) — flag obviously fake URLs
 
 STEP 4 — EVALUATE QUALITY:
 - Score E-E-A-T (4 pillars, each 0-100)
@@ -753,6 +795,7 @@ REVISION RULES (only if passed = false):
 - EDGE CASE fix: If < 3 edge cases in article body, add them. Prefer "direct" type (real gotchas from facts). If not enough, use "cross-reference" (combine existing facts in a new way). Last resort: "unknown" (honest gaps in docs). Never fabricate — if a direct edge case has no fact backing it, downgrade to "unknown" and frame it as an open question.
 - FRESHNESS fix: Add "as of [date]" or "this may have changed" to every undated fact. Update any clearly outdated info.
 - RHYTHM fix: If < 2 breathing paragraphs, insert them (analogy, reflection, or open question). If > 3, remove extras. If non-breathing paragraphs have fluff, cut it.
+- AUTHORITY fix: If < 2 external links, add links to official docs/papers/blogs from the facts array URLs. If no official source in facts, add attribution like "according to [Product]'s official documentation" for the most important claim. If a known research paper exists for the topic but wasn't cited, add a reference.
 - Remove or replace any claim not backed by the facts array
 - Fix failing quality areas — preserve what works
 - Replace banned words with natural alternatives
