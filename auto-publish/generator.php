@@ -313,14 +313,19 @@ Do NOT give all three the same rhythm (answer → condition → advice). Break t
 
 - Title: 50-65 chars, keyword in first half, power word (Guide, How, Best)
 - Excerpt: 145-160 chars, keyword included — factual content summary for cards and archive pages
-- Meta Description (SEPARATE from excerpt): 145-160 chars — this appears in Google search results. CTR-optimized:
-  * Open with a hook: surprising fact, bold claim, or problem statement
-  * Create a curiosity gap: hint at value WITHOUT giving it away ("...the workaround nobody mentions", "...most people get this wrong")
+- Meta Description (SEPARATE from excerpt): 145-160 chars — this appears in Google search results. Write it as a "pitch" (Google's own word) that convinces searchers THIS page is what they need:
+  * MUST accurately reflect the article's actual content — Google ignores descriptions that don't match the page
+  * Open with the article's CORE value proposition: what specific problem does it solve, or what will the reader gain?
+  * Include a concrete detail from the article (a number, a specific finding, a gotcha) — specificity beats vagueness
   * Include keyword naturally in the first half
-  * End with a benefit or action: "Here's what actually works." / "This changes everything."
-  * NEVER summarize the first paragraph — meta_description is an AD for the article
-  * GOOD: "Claude's 200K context sounds great - until you hit the hidden output limit. Here's the real cap, plus 3 workarounds that actually work."
-  * BAD: "This article explains how to use Claude's context window and its limitations."
+  * Use [brackets] or (parentheses) for supplementary info — proven CTR booster: "Claude Context Window [2025 Tested]"
+  * Include a number when possible — "3 workarounds", "5 settings", "under 10 minutes"
+  * End with a benefit or implied action — NOT "read more" but a reason to click: "Here's what actually works."
+  * Do NOT just copy the first paragraph — write a standalone pitch based on the article's BEST content
+  * Do NOT use clickbait that the article doesn't deliver on — this causes bounces and Google will override your description
+  * GOOD: "Claude's 200K context sounds great - until you hit the hidden output limit. Here's the real cap, plus 3 workarounds that actually work. [2025 Tested]"
+  * GOOD: "Most ChatGPT prompt guides rehash the same 5 tips. Here are 7 lesser-known techniques (backed by OpenAI's own research) that actually change output quality."
+  * BAD: "This article explains how to use Claude's context window and its limitations." (← no hook, no specificity, no reason to click)
 - Slug: short, keyword-rich, lowercase-with-dashes
 - Keyword in first 100 words and in at least one H2
 - H2 for main sections, H3 for sub-steps
@@ -343,7 +348,7 @@ Respond with valid JSON only. No markdown fences, no extra text:
   "title": "SEO title (50-65 chars)",
   "slug": "url-slug",
   "excerpt": "Content summary for cards (145-160 chars)",
-  "meta_description": "CTR-optimized description for Google search results (145-160 chars) — hook + curiosity gap + benefit. DIFFERENT from excerpt.",
+  "meta_description": "Search result pitch (145-160 chars) — core value + concrete detail + keyword + benefit. Must accurately reflect article content. DIFFERENT from excerpt.",
   "category": "category-slug",
   "difficulty": "beginner|intermediate|advanced",
   "competitor_consensus": {
