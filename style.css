@@ -321,7 +321,9 @@ h6 { font-size: var(--text-base); }
     background: transparent;
 }
 
-.main-navigation .sub-menu a::after {
+.main-navigation .sub-menu a::after,
+.main-navigation .sub-menu .current-menu-item > a::after,
+.main-navigation .sub-menu .current-menu-ancestor > a::after {
     display: none;
 }
 
