@@ -252,16 +252,19 @@ h6 { font-size: var(--text-base); }
 }
 
 .main-navigation a:hover,
-.main-navigation .current-menu-item a {
+.main-navigation .current-menu-item > a,
+.main-navigation .current-menu-ancestor > a {
     color: var(--color-primary);
     background: rgba(99, 102, 241, 0.06);
 }
 
-.main-navigation .current-menu-item a {
+.main-navigation .current-menu-item > a,
+.main-navigation .current-menu-ancestor > a {
     position: relative;
 }
 
-.main-navigation .current-menu-item a::after {
+.main-navigation .current-menu-item > a::after,
+.main-navigation .current-menu-ancestor > a::after {
     content: '';
     position: absolute;
     bottom: 4px;
@@ -314,6 +317,12 @@ h6 { font-size: var(--text-base); }
     font-weight: 400;
     white-space: nowrap;
     border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    background: transparent;
+}
+
+.main-navigation .sub-menu a::after {
+    display: none;
 }
 
 .main-navigation .sub-menu a:hover {
